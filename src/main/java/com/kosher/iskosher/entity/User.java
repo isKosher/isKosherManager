@@ -1,14 +1,10 @@
 package com.kosher.iskosher.entity;
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.DynamicInsert;
-import org.hibernate.annotations.DynamicUpdate;
 
 import java.time.OffsetDateTime;
 import java.util.LinkedHashSet;
@@ -46,6 +42,6 @@ public class User {
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     @JsonManagedReference
-    private Set<UsersBusiness> usersVsBusinesses = new LinkedHashSet<>();
+    private Set<UsersBusiness> usersBusinesses = new LinkedHashSet<>();
 
 }

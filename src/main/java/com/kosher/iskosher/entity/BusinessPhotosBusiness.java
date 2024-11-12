@@ -13,8 +13,8 @@ import java.util.UUID;
 @Getter
 @Setter
 @Entity
-@Table(name = "users_businesses")
-public class UsersBusiness {
+@Table(name = "business_photos_businesses")
+public class BusinessPhotosBusiness {
     @Id
     @Column(name = "id", nullable = false)
     private UUID id;
@@ -22,15 +22,15 @@ public class UsersBusiness {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "business_id", nullable = false)
+    @JoinColumn(name = "business_photos_id", nullable = false)
     @JsonBackReference
-    private Business business;
+    private BusinessPhoto businessPhotos;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "businesses_id", nullable = false)
     @JsonBackReference
-    private User user;
+    private Business businesses;
 
 }

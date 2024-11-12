@@ -1,5 +1,6 @@
 package com.kosher.iskosher.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -12,8 +13,8 @@ import java.util.UUID;
 @Getter
 @Setter
 @Entity
-@Table(name = "food_types")
-public class FoodType {
+@Table(name = "food_item_type")
+public class FoodItemType {
     @Id
     @Column(name = "id", nullable = false)
     private UUID id;
@@ -22,7 +23,8 @@ public class FoodType {
     @Column(name = "name", nullable = false, length = Integer.MAX_VALUE)
     private String name;
 
-    @OneToMany(mappedBy = "foodType")
-    private Set<FoodTypeBusiness> foodTypeBusinesses = new LinkedHashSet<>();
+    @OneToMany(mappedBy = "foodItemType",fetch = FetchType.LAZY)
+    @JsonManagedReference
+    private Set<FoodItemTypeBusiness> foodItemTypeBusinesses = new LinkedHashSet<>();
 
 }

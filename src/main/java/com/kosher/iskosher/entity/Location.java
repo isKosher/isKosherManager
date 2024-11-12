@@ -33,7 +33,7 @@ public class Location {
     private Address address;
 
     @NotNull
-    @Column(name = "street_numberr", nullable = false)
+    @Column(name = "street_number", nullable = false)
     private Long streetNumber;
 
     @NotNull
