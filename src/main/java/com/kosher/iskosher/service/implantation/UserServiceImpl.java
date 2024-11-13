@@ -28,7 +28,7 @@ public class UserServiceImpl implements UserService {
         }
 
     private UserDto convertToUserDto(User user) {
-        List<BusinessDto> businessDtos = user.getUsersVsBusinesses().stream()
+        List<BusinessDto> businessDtos = user.getUsersBusinesses().stream()
                 .map(usersBusiness -> {
                     Business business = usersBusiness.getBusiness();
                     return new BusinessDto(

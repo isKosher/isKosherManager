@@ -34,7 +34,7 @@ public class Location {
 
     @NotNull
     @Column(name = "street_number", nullable = false)
-    private Long streetNumber;
+    private Integer streetNumber;
 
     @NotNull
     @Column(name = "details", nullable = false, length = Integer.MAX_VALUE)

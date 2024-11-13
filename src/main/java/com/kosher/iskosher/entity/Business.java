@@ -1,5 +1,6 @@
 package com.kosher.iskosher.entity;
 
+import com.kosher.iskosher.dto.response.BusinessPreviewResponse;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -14,6 +15,42 @@ import java.util.UUID;
 @Setter
 @Entity
 @Table(name = "businesses")
+@SqlResultSetMapping(
+        name = "BusinessDTOMapping",
+        classes = @ConstructorResult(
+                targetClass = BusinessPreviewResponse.class,
+                columns = {
+                        @ColumnResult(name = "business_id", type = UUID.class),
+                        @ColumnResult(name = "business_name", type = String.class),
+                        @ColumnResult(name = "food_types", type = String.class),
+                        @ColumnResult(name = "food_item_types", type = String.class),
+                        @ColumnResult(name = "address", type = String.class),
+                        @ColumnResult(name = "street_number", type = Integer.class),
+                        @ColumnResult(name = "city", type = String.class),
+                        @ColumnResult(name = "business_photos", type = String.class),
+                        @ColumnResult(name = "kosher_type", type = String.class),
+                        @ColumnResult(name = "business_type", type = String.class)
+                }
+        )
+)
+@NamedNativeQuery(
+        name = "Business.getAllBusinesses",
+        query = """
+        SELECT 
+            result.business_id,
+            result.business_name,
+            result.food_types,
+            result.food_item_types,
+            result.address,
+            result.street_number,
+            result.city,
+            result.business_photos,
+            result.kosher_type,
+            result.business_type
+        FROM get_all_businesses() AS result
+        """,
+        resultSetMapping = "BusinessDTOMapping"
+)
 public class Business {
     @Id
     @Column(name = "id", nullable = false)

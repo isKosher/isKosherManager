@@ -1,5 +1,6 @@
 package com.kosher.iskosher.repository;
 
+import com.kosher.iskosher.dto.response.BusinessPreviewResponse;
 import com.kosher.iskosher.entity.Business;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -8,16 +9,6 @@ import java.util.List;
 import java.util.UUID;
 
 public interface BusinessRepository extends JpaRepository<Business, UUID> {
-    @Query("SELECT DISTINCT b FROM Business b " +
-            "LEFT JOIN FETCH b.kosherType " +
-            "LEFT JOIN FETCH b.kosherCertificate " +
-            "LEFT JOIN FETCH b.businessType " +
-            "LEFT JOIN FETCH b.foodTypeVsBusinesses ftb " +
-            "LEFT JOIN FETCH b.locationsVsBusinesses lb " +
-            "LEFT JOIN FETCH b.supervisorsVsBusinesses sb " +
-            "WHERE b.isActive = true")
-    List<Business> findAllBusinessWithDetails();
-
     @Query("""
         SELECT DISTINCT b FROM Business b
         LEFT JOIN FETCH b.businessType
@@ -34,4 +25,10 @@ public interface BusinessRepository extends JpaRepository<Business, UUID> {
     """)
     List<Business> findAllActiveBusinessesWithDetails();
 
+
+    @Query(nativeQuery = true)
+    List<BusinessPreviewResponse> getAllBusinesses();
+
+    @Query(value = "SELECT * FROM get_all_businesses()", nativeQuery = true)
+    List<Object[]> getActiveBusinessesWithDetails();
 }

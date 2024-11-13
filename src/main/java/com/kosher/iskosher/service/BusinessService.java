@@ -1,11 +1,19 @@
 package com.kosher.iskosher.service;
 
+import com.kosher.iskosher.dto.response.BusinessDetailedResponse;
 import com.kosher.iskosher.dto.BusinessDto;
-import com.kosher.iskosher.entity.Business;
+import com.kosher.iskosher.dto.response.BusinessPreviewResponse;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface BusinessService {
 
     List<BusinessDto> getAllBusiness();
+
+    List<BusinessPreviewResponse> getBusinessPreviews();
+
+    BusinessDetailedResponse getBusinessDetails(UUID id);
+
+    void deleteBusiness(UUID id);
 }
