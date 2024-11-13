@@ -18,7 +18,7 @@ public class BusinessMapper {
         return BusinessDto.builder()
                 .id(business.getId())
                 .phone("")
-                .imageUrl(business.getImageUrl())
+                .imageUrl("")
                 .businessType(toBusinessTypeToModel(business.getBusinessType()))
                 .name(business.getName())
                 .kosherLevel(toKosherTypeModel(business.getKosherType()))
