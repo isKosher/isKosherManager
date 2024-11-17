@@ -23,6 +23,10 @@ public class BusinessPhoto {
     @Column(name = "url", nullable = false, length = Integer.MAX_VALUE)
     private String url;
 
+
+    @Column(name = "photo_info")
+    private String photoInfo;
+
     @OneToMany(mappedBy = "businessPhotos",fetch = FetchType.LAZY)
     @JsonManagedReference
     private Set<BusinessPhotosBusiness> businessPhotosVsBusinesses = new LinkedHashSet<>();

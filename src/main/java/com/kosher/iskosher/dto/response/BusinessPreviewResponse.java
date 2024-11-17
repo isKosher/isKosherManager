@@ -2,10 +2,12 @@ package com.kosher.iskosher.dto.response;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kosher.iskosher.dto.BusinessPhotoDto;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -25,18 +27,19 @@ public class BusinessPreviewResponse {
     private String businessPhotos;
     private String kosherType;
     private String businessType;
-    public BusinessPreviewResponse(UUID business_id, String business_name, String food_types, String food_item_types,
-                                   String address, Integer street_number, String city, String business_photos,
-                                   String kosher_type, String business_type) {
-        this.businessId = business_id;
-        this.businessName = business_name;
-        this.foodTypes = food_types;
-        this.foodItemTypes = food_item_types;
+
+    public BusinessPreviewResponse(UUID businessId, String businessName, String foodTypes, String foodItemTypes,
+                                   String address, Integer streetNumber, String city, String businessPhotos,
+                                   String kosherType, String business_type) {
+        this.businessId = businessId;
+        this.businessName = businessName;
+        this.foodTypes = foodTypes;
+        this.foodItemTypes = foodItemTypes;
         this.address = address;
-        this.streetNumber = street_number;
+        this.streetNumber = streetNumber;
         this.city = city;
-        this.businessPhotos = business_photos;
-        this.kosherType = kosher_type;
+        this.businessPhotos = businessPhotos;
+        this.kosherType = kosherType;
         this.businessType = business_type;
     }
 
@@ -48,14 +51,28 @@ public class BusinessPreviewResponse {
         return parseJsonArray(foodItemTypes);
     }
 
-    public List<String> getBusinessPhotos() {
-        return parseJsonArray(businessPhotos);
+
+    public List<BusinessPhotoDto> getBusinessPhotos() {
+        return parseJsonToBusinessPhotos(businessPhotos);
+    }
+
+
+    private List<BusinessPhotoDto> parseJsonToBusinessPhotos(String json) {
+        try {
+            System.out.printf(json);
+            ObjectMapper mapper = new ObjectMapper();
+            return mapper.readValue(json, new TypeReference<List<BusinessPhotoDto>>() {
+            });
+        } catch (Exception e) {
+            return new ArrayList<>();
+        }
     }
 
     private List<String> parseJsonArray(String json) {
         try {
             ObjectMapper mapper = new ObjectMapper();
-            return mapper.readValue(json, new TypeReference<List<String>>() {});
+            return mapper.readValue(json, new TypeReference<List<String>>() {
+            });
         } catch (Exception e) {
             return new ArrayList<>();
         }

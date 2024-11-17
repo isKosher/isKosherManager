@@ -1,12 +1,16 @@
 package com.kosher.iskosher.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kosher.iskosher.dto.CityDto;
 import com.kosher.iskosher.dto.response.BusinessDetailedResponse;
 import com.kosher.iskosher.dto.response.BusinessPreviewResponse;
 import com.kosher.iskosher.dto.BusinessDto;
+import com.kosher.iskosher.dto.response.ErrorResponse;
 import com.kosher.iskosher.entity.Business;
+import com.kosher.iskosher.entity.City;
 import com.kosher.iskosher.model.mappers.BusinessMapper;
 import com.kosher.iskosher.repository.BusinessRepository;
+import com.kosher.iskosher.repository.CityRepository;
 import com.kosher.iskosher.service.BusinessService;
 import com.kosher.iskosher.service.UserService;
 import jakarta.validation.constraints.NotNull;
@@ -15,7 +19,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -26,14 +32,15 @@ public class BusinessController {
 
     private final BusinessService businessService;
     private final BusinessRepository businessRepository;
+
+    private final CityRepository cityRepository;
     private final UserService userService;
 
     private final ObjectMapper objectMapper;
 
 
-
     @GetMapping("/preview")
-    public ResponseEntity<List<BusinessPreviewResponse>> getBusinessPreviews(){
+    public ResponseEntity<List<BusinessPreviewResponse>> getBusinessPreviews() {
         try {
             List<BusinessPreviewResponse> businesses = businessService.getBusinessPreviews();
             if (businesses.isEmpty()) {
@@ -49,9 +56,33 @@ public class BusinessController {
 
     }
 
+    @GetMapping("")
+    public ResponseEntity<?> getBusinPreviews() {
+        Optional<CityDto> cityDto = getCityDtoByName("ירושsלים");
+
+        if (cityDto.isEmpty()) {
+            ErrorResponse error = ErrorResponse.
+                    builder()
+                    .timestamp(LocalDateTime.now())
+                    .message("העיר המבוקשת לא נמצאה במערכת")
+                    .path("http://localhost:8080/api/v1/businesses")
+                    .build();
+
+
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+        }
+
+        return ResponseEntity.ok(cityDto.get());
+    }
+
+    public Optional<CityDto> getCityDtoByName(String name) {
+        Optional<City> city = cityRepository.findByName(name);
+        return city.map(c -> new CityDto(c.getId(), c.getName()));
+    }
+
 
     @GetMapping("/findAllTest")
-    public List<BusinessDto> findAllActiveBusinessesWithDetails(){
+    public List<BusinessDto> findAllActiveBusinessesWithDetails() {
         List<Business> allActiveBusinessesWithDetails = businessRepository.findAllActiveBusinessesWithDetails();
         return allActiveBusinessesWithDetails.stream().map(BusinessMapper::businessToDto).collect(Collectors.toList());
 

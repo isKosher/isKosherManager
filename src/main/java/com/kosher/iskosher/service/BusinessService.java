@@ -9,7 +9,6 @@ import java.util.UUID;
 
 public interface BusinessService {
 
-    List<BusinessDto> getAllBusiness();
 
     List<BusinessPreviewResponse> getBusinessPreviews();
 

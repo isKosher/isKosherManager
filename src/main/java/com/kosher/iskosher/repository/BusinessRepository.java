@@ -1,11 +1,13 @@
 package com.kosher.iskosher.repository;
 
+import com.kosher.iskosher.dto.response.BusinessDetailedResponse;
 import com.kosher.iskosher.dto.response.BusinessPreviewResponse;
 import com.kosher.iskosher.entity.Business;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-
+import org.springframework.data.repository.query.Param;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface BusinessRepository extends JpaRepository<Business, UUID> {
@@ -29,6 +31,8 @@ public interface BusinessRepository extends JpaRepository<Business, UUID> {
     @Query(nativeQuery = true)
     List<BusinessPreviewResponse> getAllBusinesses();
 
-    @Query(value = "SELECT * FROM get_all_businesses()", nativeQuery = true)
-    List<Object[]> getActiveBusinessesWithDetails();
+
+    @Query(nativeQuery = true)
+    Optional<BusinessDetailedResponse> getBusinessDetails(@Param("businessId") UUID businessId);
+
 }

@@ -1,11 +1,12 @@
 package com.kosher.iskosher.entity;
 
+import com.kosher.iskosher.dto.response.BusinessDetailedResponse;
 import com.kosher.iskosher.dto.response.BusinessPreviewResponse;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
-
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -15,6 +16,58 @@ import java.util.UUID;
 @Setter
 @Entity
 @Table(name = "businesses")
+@SqlResultSetMapping(
+        name = "BusinessDetailedResponseMapping",
+        classes = @ConstructorResult(
+                targetClass = BusinessDetailedResponse.class,
+                columns = {
+                        @ColumnResult(name = "business_id", type = UUID.class),
+                        @ColumnResult(name = "business_name", type = String.class),
+                        @ColumnResult(name = "food_types", type = String.class),
+                        @ColumnResult(name = "food_item_types", type = String.class),
+                        @ColumnResult(name = "address", type = String.class),
+                        @ColumnResult(name = "street_number", type = Integer.class),
+                        @ColumnResult(name = "city", type = String.class),
+                        @ColumnResult(name = "business_photos", type = String.class),
+                        @ColumnResult(name = "kosher_type", type = String.class),
+                        @ColumnResult(name = "business_type", type = String.class),
+                        @ColumnResult(name = "business_details", type = String.class),
+                        @ColumnResult(name = "location_details", type = String.class),
+                        @ColumnResult(name = "business_rating", type = Short.class),
+                        @ColumnResult(name = "supervisor_name", type = String.class),
+                        @ColumnResult(name = "supervisor_contact", type = String.class),
+                        @ColumnResult(name = "supervisor_authority", type = String.class),
+                        @ColumnResult(name = "business_certificate", type = String.class),
+                        @ColumnResult(name = "expiration_date", type = LocalDate.class)
+                }
+        )
+)
+@NamedNativeQuery(
+        name = "Business.getBusinessDetails",
+        query = """
+        SELECT 
+            b.business_id,
+            b.business_name,
+            b.food_types,
+            b.food_item_types,
+            b.address,
+            b.street_number,
+            b.city,
+            b.business_photos,
+            b.kosher_type,
+            b.business_type,
+            b.business_details,
+            b.location_details,
+            b.business_rating,
+            b.supervisor_name,
+            b.supervisor_contact,
+            b.supervisor_authority,
+            b.business_certificate,
+            b.expiration_date
+        FROM get_business_details(:businessId) AS b
+        """,
+        resultSetMapping = "BusinessDetailedResponseMapping"
+)
 @SqlResultSetMapping(
         name = "BusinessDTOMapping",
         classes = @ConstructorResult(

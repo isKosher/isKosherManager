@@ -10,7 +10,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Service
 public class UnsplashImageService implements ImageService {
 
-
     private final RestTemplate restTemplate;
     private final String unsplashApiUrl;
     private final String unsplashAccessKey;

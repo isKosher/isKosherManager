@@ -21,14 +21,6 @@ public class BusinessServiceImpl implements BusinessService {
 
     private final BusinessRepository businessRepository;
 
-
-    @Override
-    public List<BusinessDto> getAllBusiness() {
-        List<Business> businessList = businessRepository.findAll();
-        return businessList.stream().map(BusinessMapper::businessToDto).collect(Collectors.toList());
-
-    }
-
     @Override
     public List<BusinessPreviewResponse> getBusinessPreviews() {
         return businessRepository.getAllBusinesses();
@@ -36,9 +28,7 @@ public class BusinessServiceImpl implements BusinessService {
 
     @Override
     public BusinessDetailedResponse getBusinessDetails(UUID id) {
-        return businessRepository.findById(id)
-
-              .map(this::mapToDetailedResponse)
+        return businessRepository.getBusinessDetails(id)
                 .orElseThrow(() -> new BusinessNotFoundException(id));
     }
 
@@ -50,8 +40,6 @@ public class BusinessServiceImpl implements BusinessService {
        // log.info("Successfully deleted business with ID: {}", id);
     }
     public BusinessDetailedResponse mapToDetailedResponse(Business business) {
-        return BusinessDetailedResponse.builder()
-                .businessName(business.getName())
-                .build();
+        return null;
     }
 }
