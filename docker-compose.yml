@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  app:
+    image: iskoshermanager
+    container_name: iskoshermanager
+    environment:
+      - DB_SUPABASE_PASSWORD=${DB_PASSWORD}
+      - UNSPLASH_ACCESS_KEY=${UNSPLASH_ACCESS_KEY}
+    ports:
+      - "8080:8080"
