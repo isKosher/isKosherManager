@@ -1,11 +1,11 @@
 package com.kosher.iskosher.entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.kosher.iskosher.common.interfaces.NamedEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
-
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -14,7 +14,7 @@ import java.util.UUID;
 @Setter
 @Entity
 @Table(name = "kosher_types")
-public class KosherType {
+public class KosherType implements NamedEntity {
     @Id
     @Column(name = "id", nullable = false)
     private UUID id;

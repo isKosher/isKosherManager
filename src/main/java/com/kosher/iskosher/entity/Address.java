@@ -1,6 +1,7 @@
 package com.kosher.iskosher.entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.kosher.iskosher.common.interfaces.NamedEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -14,7 +15,7 @@ import java.util.UUID;
 @Setter
 @Entity
 @Table(name = "addresses")
-public class Address {
+public class Address implements NamedEntity {
     @Id
     @Column(name = "id", nullable = false)
     private UUID id;

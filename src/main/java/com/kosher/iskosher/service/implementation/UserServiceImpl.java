@@ -1,10 +1,10 @@
-package com.kosher.iskosher.service.implantation;
+package com.kosher.iskosher.service.implementation;
 
 import com.kosher.iskosher.dto.BusinessDto;
 import com.kosher.iskosher.dto.UserDto;
 import com.kosher.iskosher.entity.Business;
 import com.kosher.iskosher.entity.User;
-import com.kosher.iskosher.repository.UserRepository;
+import com.kosher.iskosher.repository.lookups.UserRepository;
 import com.kosher.iskosher.service.UserService;
 import org.springframework.stereotype.Service;
 

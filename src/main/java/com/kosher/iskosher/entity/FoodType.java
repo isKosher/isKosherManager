@@ -1,5 +1,6 @@
 package com.kosher.iskosher.entity;
 
+import com.kosher.iskosher.common.interfaces.NamedEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -13,7 +14,7 @@ import java.util.UUID;
 @Setter
 @Entity
 @Table(name = "food_types")
-public class FoodType {
+public class FoodType implements NamedEntity {
     @Id
     @Column(name = "id", nullable = false)
     private UUID id;

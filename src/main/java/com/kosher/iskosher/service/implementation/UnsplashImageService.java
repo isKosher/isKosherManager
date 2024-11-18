@@ -1,4 +1,4 @@
-package com.kosher.iskosher.service.implantation;
+package com.kosher.iskosher.service.implementation;
 
 import com.kosher.iskosher.dto.response.UnsplashResponse;
 import com.kosher.iskosher.service.ImageService;
