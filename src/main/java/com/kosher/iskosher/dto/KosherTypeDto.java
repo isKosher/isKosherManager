@@ -1,8 +1,10 @@
 package com.kosher.iskosher.dto;
 
 import com.kosher.iskosher.common.interfaces.NamedEntityDto;
+import jakarta.validation.constraints.NotNull;
+
 import java.io.Serializable;
 import java.util.UUID;
 
-public record CityDto(UUID id, String name) implements Serializable, NamedEntityDto {
+public record KosherTypeDto(UUID id, String name) implements Serializable, NamedEntityDto {
 }

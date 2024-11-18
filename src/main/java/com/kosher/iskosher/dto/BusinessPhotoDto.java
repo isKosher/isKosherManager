@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 public record BusinessPhotoDto(
         @NotNull @URL String url,
-        @JsonProperty("photo_info") // מיפוי בין photo_info ב-JSON לבין photoInfo ב-record
+        @JsonProperty("photo_info")
         String photoInfo
 ) implements Serializable {
 }
