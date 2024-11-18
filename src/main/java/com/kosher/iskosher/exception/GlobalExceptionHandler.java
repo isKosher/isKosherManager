@@ -16,22 +16,53 @@ import java.util.stream.Collectors;
 @Slf4j
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(BusinessNotFoundException.class)
+    @ExceptionHandler(EntityNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseEntity<ErrorResponse> handleBusinessNotFoundException(
-            BusinessNotFoundException ex,
+    public ResponseEntity<ErrorResponse> handleEntityNotFoundException(
+            EntityNotFoundException ex,
             HttpServletRequest request) {
-        log.error("Business not found: {}", ex.getMessage());
+        log.error("{} not found: {} {} {}",
+                ex.getEntityType(), ex.getFieldName(), ex.getFieldValue(), ex.getMessage());
 
         ErrorResponse error = ErrorResponse.builder()
                 .message(ex.getMessage())
-                .error("Not Found")
+                .error("Entity Not Found")
                 .path(request.getRequestURI())
                 .timestamp(LocalDateTime.now())
                 .build();
 
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .error("Illegal Argument")
+                .message(ex.getMessage())
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        log.debug("Bad request: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    @ExceptionHandler(DatabaseAccessException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ResponseEntity<ErrorResponse> handleDatabaseAccessException(
+            DatabaseAccessException ex,
+            HttpServletRequest request) {
+        log.error("Database access error: {}", ex.getMessage(), ex);
+
+        ErrorResponse error = ErrorResponse.builder()
+                .message("An error occurred while accessing the database")
+                .error("Database Error")
+                .path(request.getRequestURI())
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
