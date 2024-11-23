@@ -14,9 +14,9 @@ public class KosherTypeService extends AbstractLookupService<KosherType, KosherT
     }
 
     @Override
-    protected KosherType createEntity(KosherTypeDto dto) {
+    protected KosherType createEntity(String name) {
         KosherType newKosherType = new KosherType();
-        newKosherType.setName(dto.name());
+        newKosherType.setName(name);
         return newKosherType;
     }
 
@@ -24,4 +24,5 @@ public class KosherTypeService extends AbstractLookupService<KosherType, KosherT
     protected KosherTypeDto mapToDto(KosherType entity) {
         return new KosherTypeDto(entity.getId(), entity.getName());
     }
+
 }

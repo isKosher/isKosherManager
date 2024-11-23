@@ -13,9 +13,9 @@ public class FoodTypeService extends AbstractLookupService<FoodType, FoodTypeDto
     }
 
     @Override
-    protected FoodType createEntity(FoodTypeDto dto) {
+    protected FoodType createEntity(String name) {
         FoodType newFoodType = new FoodType();
-        newFoodType.setName(dto.name());
+        newFoodType.setName(name);
         return newFoodType;
     }
 

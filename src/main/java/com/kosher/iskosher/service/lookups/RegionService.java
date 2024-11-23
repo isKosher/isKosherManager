@@ -15,9 +15,9 @@ public class RegionService extends AbstractLookupService<Region, RegionDto> {
     }
 
     @Override
-    protected Region createEntity(RegionDto dto) {
+    protected Region createEntity(String name) {
         Region newRegion = new Region();
-        newRegion.setName(dto.name());
+        newRegion.setName(name);
         return newRegion;
     }
 

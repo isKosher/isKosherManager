@@ -9,6 +9,7 @@ import java.util.UUID;
 public interface LookupService<T extends NamedEntity, D extends NamedEntityDto> {
     D findById(UUID id);
     D findByName(String name);
-    D getOrCreate(D dto);
+    D getOrCreateDto(String name);
+    T getOrCreateEntity(String name);
     List<D> findAll();
 }

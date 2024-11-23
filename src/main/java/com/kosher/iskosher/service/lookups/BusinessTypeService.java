@@ -1,10 +1,8 @@
 package com.kosher.iskosher.service.lookups;
 
 import com.kosher.iskosher.common.lookup.AbstractLookupService;
-import com.kosher.iskosher.common.lookup.LookupRepository;
 import com.kosher.iskosher.dto.BusinessTypeDto;
 import com.kosher.iskosher.entity.BusinessType;
-import com.kosher.iskosher.model.types.BusinessTypeModel;
 import com.kosher.iskosher.repository.lookups.BusinessTypeRepository;
 import org.springframework.stereotype.Service;
 
@@ -16,9 +14,9 @@ public class BusinessTypeService extends AbstractLookupService<BusinessType, Bus
         super(repository, BusinessType.class);
     }
     @Override
-    protected BusinessType createEntity(BusinessTypeDto dto) {
+    protected BusinessType createEntity(String name) {
         BusinessType newBusinessType = new BusinessType();
-        newBusinessType.setName(dto.name());
+        newBusinessType.setName(name);
         return newBusinessType;
     }
 

@@ -6,6 +6,8 @@ import com.kosher.iskosher.exception.DatabaseAccessException;
 import com.kosher.iskosher.exception.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataAccessException;
+
+import java.util.Base64;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
@@ -36,13 +38,22 @@ public abstract class AbstractLookupService<T extends NamedEntity, D extends Nam
             throw new DatabaseAccessException("Error accessing the database while retrieving entity by name", e);
         }
     }
-
-    public D getOrCreate(D dto) {
+    public D getOrCreateDto(String name) {
         try {
-            String name = dto.name();
             T entity = repository.findByNameIgnoreCase(name)
-                    .orElseGet(() -> createNew(dto));
+                    .orElseGet(() -> createNew(name));
             return mapToDto(entity);
+        } catch (IllegalArgumentException e) {
+            throw new DatabaseAccessException("Error during entity creation due to existing entity", e);
+        } catch (DataAccessException e) {
+            throw new DatabaseAccessException("Error accessing the database while creating entity", e);
+        }
+    }
+
+    public T getOrCreateEntity(String name) {
+        try {
+            return repository.findByNameIgnoreCase(name)
+                    .orElseGet(() -> createNew(name));
         } catch (IllegalArgumentException e) {
             throw new DatabaseAccessException("Error during entity creation due to existing entity", e);
         } catch (DataAccessException e) {
@@ -60,17 +71,16 @@ public abstract class AbstractLookupService<T extends NamedEntity, D extends Nam
             throw new DatabaseAccessException("Error accessing the database while retrieving all entities", e);  //
         }
     }
-
-    protected abstract T createEntity(D dto);
+    protected abstract T createEntity(String name);
 
     protected abstract D mapToDto(T entity);
 
-    private T createNew(D dto) {
-        if (repository.existsByNameIgnoreCase(dto.name())) {
+    private T createNew(String name) {
+        if (repository.existsByNameIgnoreCase(name)) {
             throw new IllegalArgumentException(String.format("%s with the name %s already exists in the system",
-                    entityClass.getSimpleName(), dto.name()));
+                    entityClass.getSimpleName(), name));
         }
-        T entity = createEntity(dto);
+        T entity = createEntity(name);
         try {
             return repository.save(entity);
         } catch (DataAccessException e) {

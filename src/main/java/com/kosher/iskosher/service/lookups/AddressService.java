@@ -13,9 +13,9 @@ public class AddressService extends AbstractLookupService<Address, AddressDto> {
     }
 
     @Override
-    protected Address createEntity(AddressDto dto) {
+    protected Address createEntity(String name) {
         Address newAddress = new Address();
-        newAddress.setName(dto.name());
+        newAddress.setName(name);
         return newAddress;
     }
 

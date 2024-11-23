@@ -33,6 +33,6 @@ public abstract class LookupController<T extends NamedEntity, D extends NamedEnt
 
     @PostMapping("/get-or-create")
     public ResponseEntity<D> getOrCreate(@RequestParam D dto) {
-        return ResponseEntity.ok(service.getOrCreate(dto));
+        return ResponseEntity.ok(service.getOrCreateDto(dto.name()));
     }
 }
