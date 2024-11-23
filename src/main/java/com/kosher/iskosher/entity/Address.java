@@ -17,6 +17,7 @@ import java.util.UUID;
 @Table(name = "addresses")
 public class Address implements NamedEntity {
     @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", nullable = false)
     private UUID id;
 

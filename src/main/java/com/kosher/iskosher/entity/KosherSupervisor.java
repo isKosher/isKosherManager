@@ -16,6 +16,7 @@ import java.util.UUID;
 @Table(name = "kosher_supervisors")
 public class KosherSupervisor {
     @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", nullable = false)
     private UUID id;
 

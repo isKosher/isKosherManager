@@ -17,6 +17,7 @@ import java.util.UUID;
 @Table(name = "kosher_certificates")
 public class KosherCertificate {
     @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", nullable = false)
     private UUID id;
 
