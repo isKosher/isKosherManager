@@ -1,5 +1,7 @@
 package com.kosher.iskosher.service;
 
+import com.kosher.iskosher.dto.request.BusinessCreateRequest;
+import com.kosher.iskosher.dto.response.BusinessCreateResponse;
 import com.kosher.iskosher.dto.response.BusinessDetailedResponse;
 import com.kosher.iskosher.dto.BusinessDto;
 import com.kosher.iskosher.dto.response.BusinessPreviewResponse;
@@ -15,4 +17,6 @@ public interface BusinessService {
     BusinessDetailedResponse getBusinessDetails(UUID id);
 
     void deleteBusiness(UUID id);
+
+    BusinessCreateResponse createBusiness(BusinessCreateRequest createRequest);
 }

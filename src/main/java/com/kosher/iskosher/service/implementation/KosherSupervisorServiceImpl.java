@@ -7,6 +7,8 @@ import com.kosher.iskosher.service.KosherSupervisorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class KosherSupervisorServiceImpl implements KosherSupervisorService {
@@ -14,11 +16,15 @@ public class KosherSupervisorServiceImpl implements KosherSupervisorService {
     private final KosherSupervisorRepository kosherSupervisorRepository;
     @Override
     public KosherSupervisor createSupervisor(KosherSupervisorDto kosherSupervisorDto) {
-            KosherSupervisor supervisor = new KosherSupervisor();
-            supervisor.setName(kosherSupervisorDto.name());
-            supervisor.setContactInfo(kosherSupervisorDto.contactInfo());
-            supervisor.setAuthority(kosherSupervisorDto.contactInfo());
-            return kosherSupervisorRepository.save(supervisor);
-
+        Optional<KosherSupervisor> existingSupervisor = kosherSupervisorRepository.findByContactInfo(kosherSupervisorDto.contactInfo());
+        if (existingSupervisor.isPresent()) {
+            return existingSupervisor.get();
+        }
+        KosherSupervisor supervisor = new KosherSupervisor();
+        supervisor.setName(kosherSupervisorDto.name());
+        supervisor.setContactInfo(kosherSupervisorDto.contactInfo());
+        supervisor.setAuthority(kosherSupervisorDto.authority());
+        return kosherSupervisorRepository.save(supervisor);
     }
+
 }

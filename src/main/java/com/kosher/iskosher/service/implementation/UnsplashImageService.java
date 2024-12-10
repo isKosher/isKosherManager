@@ -2,11 +2,13 @@ package com.kosher.iskosher.service.implementation;
 
 import com.kosher.iskosher.dto.response.UnsplashResponse;
 import com.kosher.iskosher.service.ImageService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+@Slf4j
 @Service
 public class UnsplashImageService implements ImageService {
 
@@ -35,6 +37,7 @@ public class UnsplashImageService implements ImageService {
             }
         } catch (Exception e) {
             System.out.println("Error fetching image: " + e.getMessage());
+            log.error("Error fetching image: {}", businessType, e.getMessage());
         }
         return null;
     }

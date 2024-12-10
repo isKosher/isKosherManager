@@ -12,6 +12,9 @@ import java.util.List;
 public record BusinessCreateRequest(
         @NotNull(message = "Business name is required")
         String businessName,
+
+        @NotNull(message = "Business phone is required")
+        String businessPhone,
         @NotNull(message = "Business details are required")
         String businessDetails,
         @Min(value = 1, message = "Business rating must be at least 1")
