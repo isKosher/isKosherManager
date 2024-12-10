@@ -34,4 +34,8 @@ public class SupervisorsBusiness {
     @JsonBackReference
     private KosherSupervisor supervisor;
 
+    public SupervisorsBusiness(Business business, KosherSupervisor supervisor) {
+        this.business = business;
+        this.supervisor = supervisor;
+    }
 }

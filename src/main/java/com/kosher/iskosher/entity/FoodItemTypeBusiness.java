@@ -34,4 +34,11 @@ public class FoodItemTypeBusiness {
     @JsonBackReference
     private Business business;
 
+    public FoodItemTypeBusiness(Business business, FoodItemType foodItemType) {
+        this.business = business;
+        this.foodItemType = foodItemType;
+    }
+
+    public FoodItemTypeBusiness() {
+    }
 }

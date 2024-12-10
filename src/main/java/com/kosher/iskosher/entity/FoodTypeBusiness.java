@@ -13,7 +13,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @Entity
-@Table(name = "\"food_type_businesses\"")
+@Table(name = "food_type_businesses")
 public class FoodTypeBusiness {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -33,4 +33,11 @@ public class FoodTypeBusiness {
     @JsonBackReference
     private FoodType foodType;
 
+    public FoodTypeBusiness(Business business, FoodType foodType) {
+        this.business = business;
+        this.foodType = foodType;
+    }
+
+    public FoodTypeBusiness() {
+    }
 }

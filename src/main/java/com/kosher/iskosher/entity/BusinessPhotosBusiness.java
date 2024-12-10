@@ -34,4 +34,11 @@ public class BusinessPhotosBusiness {
     @JsonBackReference
     private Business businesses;
 
+    public BusinessPhotosBusiness(Business businesses, BusinessPhoto businessPhotos) {
+        this.businesses = businesses;
+        this.businessPhotos = businessPhotos;
+    }
+
+    public BusinessPhotosBusiness() {
+    }
 }

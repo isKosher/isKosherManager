@@ -22,7 +22,7 @@ public class KosherCertificate {
     private UUID id;
 
     @NotNull
-    @Column(name = "certificate", nullable = false, length = Integer.MAX_VALUE)
+    @Column(name = "certificate", nullable = false, unique = true, length = Integer.MAX_VALUE)
     private String certificate;
 
     @NotNull
