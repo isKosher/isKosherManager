@@ -59,7 +59,6 @@ public class BusinessPreviewResponse {
 
     private List<BusinessPhotoDto> parseJsonToBusinessPhotos(String json) {
         try {
-            System.out.printf(json);
             ObjectMapper mapper = new ObjectMapper();
             return mapper.readValue(json, new TypeReference<List<BusinessPhotoDto>>() {
             });
