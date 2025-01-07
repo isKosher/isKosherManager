@@ -3,10 +3,10 @@ package com.kosher.iskosher.service.implementation;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.kosher.iskosher.dto.response.*;
+import org.springframework.data.domain.Sort;
 import com.kosher.iskosher.dto.request.BusinessCreateRequest;
-import com.kosher.iskosher.dto.response.BusinessCreateResponse;
-import com.kosher.iskosher.dto.response.BusinessDetailedResponse;
-import com.kosher.iskosher.dto.response.BusinessPreviewResponse;
+import com.kosher.iskosher.dto.request.BusinessSearchCriteria;
 import com.kosher.iskosher.entity.*;
 import com.kosher.iskosher.exception.BusinessCreationException;
 import com.kosher.iskosher.exception.EntityNotFoundException;
@@ -15,6 +15,9 @@ import com.kosher.iskosher.service.*;
 import com.kosher.iskosher.service.lookups.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.OffsetDateTime;
@@ -238,6 +241,15 @@ public class BusinessServiceImpl implements BusinessService {
                 .orElseThrow(() -> new EntityNotFoundException("Business", "id", id));
         businessRepository.delete(business);
         log.info("Successfully deleted business with ID: {}", id);
+    }
+
+    public Page<BusinessQuickSearchResponse> quickSearchByName(String query, int limit) {
+        Pageable pageable = PageRequest.of(0, limit, Sort.by(Sort.Order.asc("name")));
+        return businessRepository.findByNameContainingIgnoreCase(query, pageable);
+    }
+
+    public Page<BusinessPreviewResponse> searchBusinesses(BusinessSearchCriteria criteria, Pageable pageable) {
+        return businessRepository.searchBusinesses(criteria, pageable);
     }
 
 }
