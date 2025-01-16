@@ -20,10 +20,6 @@ public class KosherCertificateServiceImpl implements KosherCertificateService {
     @Override
     public KosherCertificate createCertificate(KosherCertificateDto dto) {
         try {
-            if (kosherCertificateRepository.existsByCertificate(dto.certificate())) {
-                throw new BusinessCreationException("Kosher Certificate with the given key already exists: " + dto.certificate());
-            }
-
             KosherCertificate certificate = new KosherCertificate();
             certificate.setCertificate(dto.certificate());
             certificate.setExpirationDate(LocalDate.parse(dto.expirationDate()));
@@ -31,7 +27,15 @@ public class KosherCertificateServiceImpl implements KosherCertificateService {
         } catch (BusinessCreationException e) {
             throw e;
         } catch (Exception e) {
-            throw new BusinessCreationException("An unexpected error occurred while creating the Kosher Certificate.", e);
+            throw new BusinessCreationException("An unexpected error occurred while creating the Kosher Certificate."
+                    , e);
+        }
+    }
+
+    @Override
+    public void existsByCertificate(String certificate) {
+        if (kosherCertificateRepository.existsByCertificate(certificate)) {
+            throw new BusinessCreationException("Kosher Certificate with the given key already exists: " + certificate);
         }
     }
 

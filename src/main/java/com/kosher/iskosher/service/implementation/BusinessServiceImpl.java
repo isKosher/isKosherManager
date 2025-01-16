@@ -4,9 +4,8 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.kosher.iskosher.dto.response.*;
-import org.springframework.data.domain.Sort;
 import com.kosher.iskosher.dto.request.BusinessCreateRequest;
-import com.kosher.iskosher.dto.request.BusinessSearchCriteria;
+import com.kosher.iskosher.dto.request.BusinessFilterCriteria;
 import com.kosher.iskosher.entity.*;
 import com.kosher.iskosher.exception.BusinessCreationException;
 import com.kosher.iskosher.exception.EntityNotFoundException;
@@ -16,7 +15,6 @@ import com.kosher.iskosher.service.lookups.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -123,12 +121,14 @@ public class BusinessServiceImpl implements BusinessService {
     @Override
     public BusinessCreateResponse createBusiness(BusinessCreateRequest dto) {
         try {
+            kosherCertificateService.existsByCertificate(dto.kosherCertificate().certificate());
+
             //region Asynchronous Entity Preparation
             CompletableFuture<City> cityFuture = CompletableFuture.supplyAsync(() ->
-                    cityCache.getUnchecked(dto.cityName() + "::" + dto.region())
+                    cityCache.getUnchecked(dto.location().city() + "::" + dto.location().region())
             );
             CompletableFuture<Address> addressFuture =
-                    CompletableFuture.supplyAsync(() -> addressCache.getUnchecked(dto.addressName()));
+                    CompletableFuture.supplyAsync(() -> addressCache.getUnchecked(dto.location().address()));
             CompletableFuture<BusinessType> businessTypeFuture =
                     CompletableFuture.supplyAsync(() -> businessTypeCache.getUnchecked(dto.businessTypeName()));
             CompletableFuture<KosherType> kosherTypeFuture =
@@ -143,7 +143,7 @@ public class BusinessServiceImpl implements BusinessService {
             //TODO add business type to list food item type
             List<BusinessPhoto> photos = photoService.createBusinessPhotos(dto.businessPhotos(),
                     dto.foodItemTypes().get(new Random().nextInt(dto.foodItemTypes().size())));
-            Location location = locationService.createLocation(dto, city, address);
+            Location location = locationService.createLocation(dto.location(), city, address);
             KosherSupervisor supervisor = kosherSupervisorService.createSupervisor(dto.supervisor());
             KosherCertificate certificate = kosherCertificateService.createCertificate(dto.kosherCertificate());
 
@@ -243,13 +243,15 @@ public class BusinessServiceImpl implements BusinessService {
         log.info("Successfully deleted business with ID: {}", id);
     }
 
-    public Page<BusinessQuickSearchResponse> quickSearchByName(String query, int limit) {
-        Pageable pageable = PageRequest.of(0, limit, Sort.by(Sort.Order.asc("name")));
-        return businessRepository.findByNameContainingIgnoreCase(query, pageable);
+    public List<BusinessSearchResponse> searchBusinesses(String searchTerm) {
+        if (searchTerm == null || searchTerm.trim().isEmpty()) {
+            return Collections.emptyList();
+        }
+        return businessRepository.searchBusinesses(searchTerm);
     }
 
-    public Page<BusinessPreviewResponse> searchBusinesses(BusinessSearchCriteria criteria, Pageable pageable) {
-        return businessRepository.searchBusinesses(criteria, pageable);
+    public Page<BusinessPreviewResponse> filterBusinesses(BusinessFilterCriteria criteria, Pageable pageable) {
+        return businessRepository.filterBusinesses(criteria, pageable);
     }
 
 }

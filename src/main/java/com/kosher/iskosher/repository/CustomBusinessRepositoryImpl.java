@@ -1,6 +1,6 @@
 package com.kosher.iskosher.repository;
 
-import com.kosher.iskosher.dto.request.BusinessSearchCriteria;
+import com.kosher.iskosher.dto.request.BusinessFilterCriteria;
 import com.kosher.iskosher.dto.response.BusinessPreviewResponse;
 import com.kosher.iskosher.exception.BusinessSearchException;
 import jakarta.persistence.EntityManager;
@@ -20,7 +20,7 @@ public class CustomBusinessRepositoryImpl implements CustomBusinessRepository {
     private EntityManager entityManager;
 
     @Override
-    public Page<BusinessPreviewResponse> searchBusinesses(BusinessSearchCriteria criteria, Pageable pageable) {
+    public Page<BusinessPreviewResponse> filterBusinesses(BusinessFilterCriteria criteria, Pageable pageable) {
         try {
             validateSearchCriteria(criteria);
             validatePageable(pageable);
@@ -47,7 +47,7 @@ public class CustomBusinessRepositoryImpl implements CustomBusinessRepository {
         }
     }
 
-    private String buildSearchQuery(BusinessSearchCriteria criteria) {
+    private String buildSearchQuery(BusinessFilterCriteria criteria) {
         StringBuilder queryBuilder = new StringBuilder(
                 "SELECT DISTINCT " +
                         "b.id, " +
@@ -87,7 +87,7 @@ public class CustomBusinessRepositoryImpl implements CustomBusinessRepository {
         return queryBuilder.toString();
     }
 
-    private String buildCountQuery(BusinessSearchCriteria criteria) {
+    private String buildCountQuery(BusinessFilterCriteria criteria) {
         StringBuilder queryBuilder = new StringBuilder(
                 "SELECT COUNT(DISTINCT b.id) FROM businesses b " +
                         "JOIN business_type bt ON b.business_type = bt.id " +
@@ -106,7 +106,7 @@ public class CustomBusinessRepositoryImpl implements CustomBusinessRepository {
         return queryBuilder.toString();
     }
 
-    private void appendCriteriaConditions(StringBuilder queryBuilder, BusinessSearchCriteria criteria) {
+    private void appendCriteriaConditions(StringBuilder queryBuilder, BusinessFilterCriteria criteria) {
         if (criteria.getBusinessType() != null) {
             queryBuilder.append("AND bt.name = :businessType ");
         }
@@ -127,7 +127,7 @@ public class CustomBusinessRepositoryImpl implements CustomBusinessRepository {
         }
     }
 
-    private void setQueryParameters(Query query, Query countQuery, BusinessSearchCriteria criteria,
+    private void setQueryParameters(Query query, Query countQuery, BusinessFilterCriteria criteria,
                                     Map<String, Object> parameters) {
         if (criteria.getBusinessType() != null) {
             parameters.put("businessType", criteria.getBusinessType());
@@ -177,7 +177,7 @@ public class CustomBusinessRepositoryImpl implements CustomBusinessRepository {
         return businessList;
     }
 
-    private void validateSearchCriteria(BusinessSearchCriteria criteria) {
+    private void validateSearchCriteria(BusinessFilterCriteria criteria) {
         if (criteria == null) {
             throw new IllegalArgumentException("Search criteria cannot be null");
         }

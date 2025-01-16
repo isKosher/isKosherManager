@@ -1,5 +1,6 @@
 package com.kosher.iskosher.service.implementation;
 
+import com.kosher.iskosher.dto.LocationDto;
 import com.kosher.iskosher.dto.request.BusinessCreateRequest;
 import com.kosher.iskosher.entity.Address;
 import com.kosher.iskosher.entity.City;
@@ -18,15 +19,17 @@ public class LocationServiceImpl implements LocationService {
     private final CityRepository cityRepository;
 
     @Override
-    public Location createLocation(BusinessCreateRequest dto, City city, Address address) {
+    public Location createLocation(LocationDto locationDto, City city, Address address) {
         if (city.getId() == null) {
             city = cityRepository.save(city);
         }
         Location location = new Location();
         location.setCity(city);
         location.setAddress(address);
-        location.setStreetNumber(dto.streetNumber());
-        location.setDetails(dto.locationDetails());
+        location.setStreetNumber(locationDto.streetNumber());
+        location.setLatitude(locationDto.latitude());
+        location.setLongitude(locationDto.longitude());
+        location.setDetails(locationDto.locationDetails());
         return locationRepository.save(location);
     }
 

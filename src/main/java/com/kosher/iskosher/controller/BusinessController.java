@@ -2,11 +2,10 @@ package com.kosher.iskosher.controller;
 
 import com.kosher.iskosher.dto.BusinessDto;
 import com.kosher.iskosher.dto.request.BusinessCreateRequest;
-import com.kosher.iskosher.dto.request.BusinessSearchCriteria;
+import com.kosher.iskosher.dto.request.BusinessFilterCriteria;
 import com.kosher.iskosher.dto.response.*;
 import com.kosher.iskosher.entity.Business;
 import com.kosher.iskosher.entity.Region;
-import com.kosher.iskosher.model.mappers.BusinessMapper;
 import com.kosher.iskosher.repository.BusinessRepository;
 import com.kosher.iskosher.service.BusinessService;
 import com.kosher.iskosher.service.lookups.RegionService;
@@ -21,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -33,7 +33,6 @@ import java.util.stream.Collectors;
 public class BusinessController {
 
     private final BusinessService businessService;
-    private final BusinessRepository businessRepository;
     private final RegionService regionService;
 
     @GetMapping("/preview")
@@ -55,26 +54,25 @@ public class BusinessController {
 
     }
 
-    @GetMapping("/findAllTest")
-    public List<BusinessDto> findAllActiveBusinessesWithDetails() {
-        List<Business> allActiveBusinessesWithDetails = businessRepository.findAllActiveBusinessesWithDetails();
-        return allActiveBusinessesWithDetails.stream().map(BusinessMapper::businessToDto).collect(Collectors.toList());
-    }
-
-    @GetMapping("/search")
+    @GetMapping("/filter")
     public PageResponse<BusinessPreviewResponse> searchBusinesses(
-            BusinessSearchCriteria criteria,
+            BusinessFilterCriteria criteria,
             @PageableDefault(size = 20, sort = {"name"}, direction = Sort.Direction.DESC) Pageable pageable) {
         log.info("Searching businesses with page size: {}, sort: {}", pageable.getPageSize(), pageable.getSort());
-        return new PageResponse<>(businessService.searchBusinesses(criteria, pageable));
+        return new PageResponse<>(businessService.filterBusinesses(criteria, pageable));
     }
 
-    //TODO: add pageSize and pageNumber to quickSearch
-    @GetMapping("/quick-search")
-    public PageResponse<BusinessQuickSearchResponse> quickSearch(
-            @RequestParam String query,
-            @RequestParam(defaultValue = "10") int limit) {
-        return new PageResponse<>(businessService.quickSearchByName(query, limit));
+    //TODO: add pageSize and pageNumber to search
+    @GetMapping("/search")
+    public ResponseEntity<List<BusinessSearchResponse>> searchBusinesses(
+            @RequestParam(required = false) String query,
+            @RequestParam(defaultValue = "2") int minChars) {
+
+        if (query == null || query.length() < minChars) {
+            return ResponseEntity.ok(Collections.emptyList());
+        }
+        System.out.println(query);
+        return ResponseEntity.ok(businessService.searchBusinesses(query));
     }
 
     @GetMapping("/{id}/details")
@@ -89,13 +87,6 @@ public class BusinessController {
         businessService.deleteBusiness(id);
         return ResponseEntity.noContent().build();
     }
-
-    @PostMapping("/t")
-    public ResponseEntity<?> creatfeBusiness() {
-        Region region = regionService.getOrCreateEntity("בדיקה");
-        return ResponseEntity.ok(region);
-    }
-
 
     @PostMapping()
     public ResponseEntity<BusinessCreateResponse> createBusiness(@RequestBody @Valid BusinessCreateRequest dto) {
