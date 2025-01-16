@@ -37,6 +37,12 @@ public class Location {
     @Column(name = "street_number", nullable = false)
     private Integer streetNumber;
 
+    @Column(name = "longitude")
+    private Double longitude;
+
+    @Column(name = "latitude")
+    private Double latitude;
+
     @NotNull
     @Column(name = "details", nullable = false, length = Integer.MAX_VALUE)
     private String details;
