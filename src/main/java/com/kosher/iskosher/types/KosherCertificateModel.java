@@ -1,4 +1,4 @@
-package com.kosher.iskosher.model;
+package com.kosher.iskosher.types;
 
 import lombok.Builder;
 

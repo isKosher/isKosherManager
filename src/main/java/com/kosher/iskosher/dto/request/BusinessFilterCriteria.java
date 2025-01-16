@@ -3,7 +3,7 @@ package com.kosher.iskosher.dto.request;
 import lombok.Data;
 
 @Data
-public class BusinessSearchCriteria {
+public class BusinessFilterCriteria {
     private String businessType;
     private String foodType;
     private String foodItemType;
