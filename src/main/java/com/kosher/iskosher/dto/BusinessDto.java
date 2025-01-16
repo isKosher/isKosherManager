@@ -1,11 +1,9 @@
 package com.kosher.iskosher.dto;
 
-import com.kosher.iskosher.model.KosherCertificateModel;
-import com.kosher.iskosher.model.LocationModel;
-import com.kosher.iskosher.model.SupervisorModel;
-import com.kosher.iskosher.model.types.BusinessTypeModel;
-import com.kosher.iskosher.model.types.FoodTypeModel;
-import com.kosher.iskosher.model.types.KosherTypeModel;
+import com.kosher.iskosher.types.KosherCertificateModel;
+import com.kosher.iskosher.types.LocationDetails;
+import com.kosher.iskosher.types.BusinessTypeModel;
+import com.kosher.iskosher.types.FoodTypeModel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -31,8 +29,7 @@ public class BusinessDto {
     private FoodTypeModel foodType;
  //   private FoodCategoryTypeModel foodCategoryType;
     private KosherCertificateModel kosherCertificate;
-    private SupervisorModel supervisor;
-    private LocationModel location;
+    private LocationDetails location;
 
 
     public BusinessDto(UUID id, String name) {

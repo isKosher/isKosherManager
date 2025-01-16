@@ -3,7 +3,7 @@ package com.kosher.iskosher.dto.response;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kosher.iskosher.dto.BusinessPhotoDto;
-import lombok.Builder;
+import com.kosher.iskosher.types.LocationInfo;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.UUID;
 
 @Data
-@Builder
 @NoArgsConstructor
 @Accessors(chain = true)
 public class BusinessPreviewResponse {
@@ -21,9 +20,7 @@ public class BusinessPreviewResponse {
     private String businessName;
     private String foodTypes;
     private String foodItemTypes;
-    private String address;
-    private Integer streetNumber;
-    private String city;
+    private LocationInfo location;
     private String businessPhotos;
     private String kosherType;
     private String businessType;
@@ -35,12 +32,21 @@ public class BusinessPreviewResponse {
         this.businessName = businessName;
         this.foodTypes = foodTypes;
         this.foodItemTypes = foodItemTypes;
-        this.address = address;
-        this.streetNumber = streetNumber;
-        this.city = city;
+        this.setLocation(new LocationInfo(address, streetNumber, city));
         this.businessPhotos = businessPhotos;
         this.kosherType = kosherType;
         this.businessType = business_type;
+    }
+
+    public BusinessPreviewResponse(UUID businessId, String businessName, String foodTypes, String foodItemTypes,
+                                   String businessPhotos, String kosherType, String businessType) {
+        this.businessId = businessId;
+        this.businessName = businessName;
+        this.foodTypes = foodTypes;
+        this.foodItemTypes = foodItemTypes;
+        this.businessPhotos = businessPhotos;
+        this.kosherType = kosherType;
+        this.businessType = businessType;
     }
 
     public List<String> getFoodTypes() {
