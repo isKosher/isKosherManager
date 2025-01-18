@@ -15,9 +15,11 @@ import com.kosher.iskosher.service.lookups.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -225,8 +227,13 @@ public class BusinessServiceImpl implements BusinessService {
     }
 
     @Override
-    public List<BusinessPreviewResponse> getBusinessPreviews() {
-        return businessRepository.getAllBusinesses();
+    public Page<BusinessPreviewResponse> getBusinessPreviews(Pageable pageable) {
+        List<BusinessPreviewResponse> businesses = businessRepository.getAllBusinesses(
+                pageable.getPageSize(),
+                (int) pageable.getOffset()
+        );
+
+        return new PageImpl<>(businesses, pageable, businesses.size());
     }
 
     @Override

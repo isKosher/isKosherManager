@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
+
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.LinkedHashSet;
@@ -47,33 +48,33 @@ import java.util.UUID;
 @NamedNativeQuery(
         name = "Business.getBusinessDetails",
         query = """
-        SELECT 
-            b.business_id,
-            b.business_name,
-            b.food_types,
-            b.food_item_types,
-            b.address,
-            b.street_number,
-            b.city,
-            b.longitude,
-            b.latitude,
-            b.business_photos,
-            b.kosher_type,
-            b.business_type,
-            b.business_details,
-            b.location_details,
-            b.business_rating,
-            b.supervisor_name,
-            b.supervisor_contact,
-            b.supervisor_authority,
-            b.business_certificate,
-            b.expiration_date
-        FROM get_business_details(:businessId) AS b
-        """,
+                SELECT 
+                    b.business_id,
+                    b.business_name,
+                    b.food_types,
+                    b.food_item_types,
+                    b.address,
+                    b.street_number,
+                    b.city,
+                    b.longitude,
+                    b.latitude,
+                    b.business_photos,
+                    b.kosher_type,
+                    b.business_type,
+                    b.business_details,
+                    b.location_details,
+                    b.business_rating,
+                    b.supervisor_name,
+                    b.supervisor_contact,
+                    b.supervisor_authority,
+                    b.business_certificate,
+                    b.expiration_date
+                FROM get_business_details(:businessId) AS b
+                """,
         resultSetMapping = "BusinessDetailedResponseMapping"
 )
 @SqlResultSetMapping(
-        name = "BusinessDTOMapping",
+        name = "BusinessPreviewResponseMapping",
         classes = @ConstructorResult(
                 targetClass = BusinessPreviewResponse.class,
                 columns = {
@@ -93,21 +94,22 @@ import java.util.UUID;
 @NamedNativeQuery(
         name = "Business.getAllBusinesses",
         query = """
-        SELECT 
-            result.business_id,
-            result.business_name,
-            result.food_types,
-            result.food_item_types,
-            result.address,
-            result.street_number,
-            result.city,
-            result.business_photos,
-            result.kosher_type,
-            result.business_type
-        FROM get_all_businesses() AS result
-        """,
-        resultSetMapping = "BusinessDTOMapping"
+                     SELECT
+                        result.business_id,
+                        result.business_name,
+                        result.food_types,
+                        result.food_item_types,
+                        result.address,
+                        result.street_number,
+                        result.city,
+                        result.business_photos,
+                        result.kosher_type,
+                        result.business_type
+                     FROM get_all_businesses(:limitParam, :offsetParam) AS result
+                """,
+        resultSetMapping = "BusinessPreviewResponseMapping"
 )
+
 public class Business {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

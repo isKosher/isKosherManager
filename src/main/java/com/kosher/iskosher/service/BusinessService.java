@@ -12,7 +12,7 @@ import java.util.UUID;
 public interface BusinessService {
 
 
-    List<BusinessPreviewResponse> getBusinessPreviews();
+    Page<BusinessPreviewResponse> getBusinessPreviews(Pageable pageable);
 
     BusinessDetailedResponse getBusinessDetails(UUID id);
 
