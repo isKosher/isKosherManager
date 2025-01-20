@@ -23,6 +23,11 @@ public class PageResponse<T> {
     private int totalPages;
 
     // Constructor that initializes the fields using a Spring Data Page object
+
+    public PageResponse() {
+
+    }
+
     public PageResponse(Page<T> page) {
         // The actual content of the page (a list of items)
         this.content = page.getContent();
