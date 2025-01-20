@@ -12,7 +12,6 @@ import java.util.UUID;
 public interface BusinessService {
 
 
-    Page<BusinessPreviewResponse> getBusinessPreviews(Pageable pageable);
 
     BusinessDetailedResponse getBusinessDetails(UUID id);
 
@@ -24,4 +23,5 @@ public interface BusinessService {
 
     List<BusinessSearchResponse> searchBusinesses(String searchTerm);
 
+    PageResponse<BusinessPreviewResponse> getBusinessPreviews(Pageable pageable);
 }

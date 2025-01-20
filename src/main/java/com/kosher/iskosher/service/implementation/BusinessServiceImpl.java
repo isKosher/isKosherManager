@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -227,19 +228,34 @@ public class BusinessServiceImpl implements BusinessService {
     }
 
     @Override
-    public Page<BusinessPreviewResponse> getBusinessPreviews(Pageable pageable) {
+    public PageResponse<BusinessPreviewResponse> getBusinessPreviews(Pageable pageable) {
+        int limit = pageable.getPageSize();
+        int offset = (int) pageable.getOffset();
         List<BusinessPreviewResponse> businesses = businessRepository.getAllBusinesses(
-                pageable.getPageSize(),
-                (int) pageable.getOffset()
+                limit,
+                offset
         );
 
-        return new PageImpl<>(businesses, pageable, businesses.size());
+        long totalElements = countAllBusinesses();
+
+        int totalPages = (int) Math.ceil((double) totalElements / limit);
+        PageResponse<BusinessPreviewResponse> response = new PageResponse<>();
+        response.setContent(businesses);
+        response.setPageNumber(pageable.getPageNumber() + 1);
+        response.setPageSize(limit);
+        response.setTotalElements(totalElements);
+        response.setTotalPages(totalPages);
+        return response;
     }
 
     @Override
     public BusinessDetailedResponse getBusinessDetails(UUID id) {
         return businessRepository.getBusinessDetails(id)
                 .orElseThrow(() -> new EntityNotFoundException("Business", "id", id));
+    }
+
+    private long countAllBusinesses() {
+        return businessRepository.countByIsActiveTrue();
     }
 
     @Override
@@ -250,13 +266,14 @@ public class BusinessServiceImpl implements BusinessService {
         log.info("Successfully deleted business with ID: {}", id);
     }
 
+    @Override
     public List<BusinessSearchResponse> searchBusinesses(String searchTerm) {
         if (searchTerm == null || searchTerm.trim().isEmpty()) {
             return Collections.emptyList();
         }
         return businessRepository.searchBusinesses(searchTerm);
     }
-
+    @Override
     public Page<BusinessPreviewResponse> filterBusinesses(BusinessFilterCriteria criteria, Pageable pageable) {
         return businessRepository.filterBusinesses(criteria, pageable);
     }
