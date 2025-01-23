@@ -11,8 +11,6 @@ import java.util.UUID;
 
 public interface BusinessService {
 
-
-
     BusinessDetailedResponse getBusinessDetails(UUID id);
 
     void deleteBusiness(UUID id);
