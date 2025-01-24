@@ -1,5 +1,6 @@
 package com.kosher.iskosher.exception;
 
+import com.google.firebase.auth.FirebaseAuthException;
 import com.kosher.iskosher.dto.response.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ValidationException;
@@ -40,9 +41,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BusinessCreationException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ResponseEntity<ErrorResponse> handleBusinessCreationException(
-            BusinessCreationException ex,
-            HttpServletRequest request) {
+    public ResponseEntity<ErrorResponse> handleBusinessCreationException(BusinessCreationException ex,
+                                                                         HttpServletRequest request) {
         log.error("Business creation error: {}", ex.getMessage(), ex);
 
         ErrorResponse error = ErrorResponse.builder()
@@ -53,6 +53,49 @@ public class GlobalExceptionHandler {
                 .build();
 
         return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ResponseEntity<ErrorResponse> handleAuthenticationException(
+            AuthenticationException ex,
+            HttpServletRequest request) {
+        log.error("Authentication error: {}", ex.getMessage(), ex);
+
+        ErrorResponse error = ErrorResponse.builder()
+                .message("Authentication failed")
+                .error("Authentication Error")
+                .path(request.getRequestURI())
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(FirebaseAuthException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ResponseEntity<ErrorResponse> handleFirebaseAuthException(
+            FirebaseAuthException ex,
+            HttpServletRequest request) {
+        log.error("Firebase authentication error: {}", ex.getMessage(), ex);
+
+        ErrorResponse error = ErrorResponse.builder()
+                .message("Authentication failed")
+                .error("Firebase Authentication Error")
+                .path(request.getRequestURI())
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(JwtValidationException.class)
+    public ResponseEntity<ErrorResponse> handleJwtValidationException(JwtValidationException ex,
+                                                                      HttpServletRequest request) {
+        log.error("JWT validation error: {}", ex.getMessage(), ex);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(new ErrorResponse("JWT Validation Error", ex.getMessage(), request.getRequestURI(),
+                        LocalDateTime.now()));
     }
 
     @ExceptionHandler(HandlerMethodValidationException.class)
