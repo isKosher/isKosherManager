@@ -1,56 +1,43 @@
 package com.kosher.iskosher.controller;
-import com.google.firebase.FirebaseApp;
-import com.google.firebase.auth.FirebaseAuth;
+
 import com.google.firebase.auth.FirebaseAuthException;
-import com.google.firebase.auth.FirebaseToken;
-import com.kosher.iskosher.configuration.FirebaseConfig;
-import com.kosher.iskosher.configuration.jwt.JwtTokenProvider;
-import com.kosher.iskosher.repository.lookups.UserRepository;
+import com.kosher.iskosher.configuration.jwt.JwtProvider;
+import com.kosher.iskosher.configuration.jwt.JwtProviderImpl;
+import com.kosher.iskosher.dto.response.AuthResponse;
+import com.kosher.iskosher.exception.JwtValidationException;
+import com.kosher.iskosher.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final JwtTokenProvider tokenProvider;
-   private final FirebaseAuth firebaseAuth;
+    private final JwtProvider tokenProvider;
+
+    private final AuthService authService;
 
 
-
-    @PostMapping("/login")
+    @PostMapping(value = {"/login", "/signin"})
     public ResponseEntity<?> login(@RequestHeader("Authorization") String idToken) {
+        return ResponseEntity.ok(authService.loginWithGoogle(idToken));
+    }
 
-        try {
-            FirebaseToken decodedToken = firebaseAuth.verifyIdToken(idToken);
-            System.out.println(decodedToken.getName());
-        } catch (FirebaseAuthException e) {
-            throw new RuntimeException(e);
-        }
+    @GetMapping ("/")
+    public String home(@RequestHeader("x") String token) {
 
-        String email = idToken;  //GoogleTokenVerifier.verify(idToken);
-        if (email == null) {
-            return ResponseEntity.status(401).body("Invalid Google Token");
-        }
+       if (tokenProvider.validateAccessToken(token)){
+           String s = tokenProvider.extractEmailFromAccessToken(token);
+           UUID uuid = tokenProvider.extractUserIdFromAccessToken(token);
+           return s + uuid;
+       }
 
-
-
-
-
-       /* User user = userRepository.findByEmail(email);
-        if (user == null) {
-            user = new User(email, "ROLE_USER");
-            userRepository.save(user);
-        }*/
-
-        String accessToken = tokenProvider.createAccessToken(email, "test");
-        String refreshToken = tokenProvider.createRefreshToken(email);
-
-
-        return ResponseEntity.ok(List.of(accessToken, refreshToken));
+       return null;
     }
 }
