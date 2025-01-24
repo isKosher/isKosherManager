@@ -1,5 +1,7 @@
 package com.kosher.iskosher.service;
 
+import com.google.firebase.auth.FirebaseAuthException;
+
 public interface OAuth2Service<T> {
 
     /**
@@ -9,7 +11,7 @@ public interface OAuth2Service<T> {
      * @return the user details as an object of type T
      * @throws IllegalArgumentException if the token is invalid
      */
-    T verifyToken(String token);
+    T verifyToken(String token) throws Exception;
 
     /**
      * Converts the user details into a standardized format for your application.
