@@ -8,8 +8,9 @@ import java.util.UUID;
  */
 public record UserDto(
         UUID id,
+        String googleId,
         String name,
         String email,
         Boolean isManager,
         List<BusinessDto> businesses
-) {}
+        ) {}
