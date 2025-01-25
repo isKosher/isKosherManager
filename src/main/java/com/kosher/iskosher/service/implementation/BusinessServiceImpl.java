@@ -10,6 +10,7 @@ import com.kosher.iskosher.entity.*;
 import com.kosher.iskosher.exception.BusinessCreationException;
 import com.kosher.iskosher.exception.EntityNotFoundException;
 import com.kosher.iskosher.repository.*;
+import com.kosher.iskosher.repository.lookups.UserRepository;
 import com.kosher.iskosher.service.*;
 import com.kosher.iskosher.service.lookups.*;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,7 @@ import static com.kosher.iskosher.common.constant.AppConstants.*;
 @Transactional
 @RequiredArgsConstructor
 public class BusinessServiceImpl implements BusinessService {
+    private final UserRepository userRepository;
 
     //region Repository Dependencies
     private final BusinessRepository businessRepository;
@@ -54,6 +56,7 @@ public class BusinessServiceImpl implements BusinessService {
     private final FoodTypeBusinessRepository foodTypeBusinessRepository;
     private final FoodItemTypeBusinessRepository foodItemTypeBusinessRepository;
     private final BusinessPhotosBusinessRepository businessPhotosBusinessRepository;
+    private final UsersBusinessRepository usersBusinessRepository;
     //endregion
 
     //region Caching Configurations
@@ -122,7 +125,7 @@ public class BusinessServiceImpl implements BusinessService {
     //endregion
 
     @Override
-    public BusinessCreateResponse createBusiness(BusinessCreateRequest dto) {
+    public BusinessCreateResponse createBusiness(UUID userId, BusinessCreateRequest dto) {
         try {
             kosherCertificateService.existsByCertificate(dto.kosherCertificate().certificate());
 
@@ -149,9 +152,11 @@ public class BusinessServiceImpl implements BusinessService {
             Location location = locationService.createLocation(dto.location(), city, address);
             KosherSupervisor supervisor = kosherSupervisorService.createSupervisor(dto.supervisor());
             KosherCertificate certificate = kosherCertificateService.createCertificate(dto.kosherCertificate());
-
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new EntityNotFoundException("User", "id", userId));
             Business business = createBusinessEntity(dto, kosherType, businessType, certificate);
-            batchCreateRelationships(business, location, supervisor, photos, dto.foodTypes(), dto.foodItemTypes());
+            batchCreateRelationships(business, location, user, supervisor, photos, dto.foodTypes(),
+                    dto.foodItemTypes());
             //endregion
 
             log.info("Successfully created business: {} with ID: {}", business.getName(), business.getId());
@@ -161,7 +166,7 @@ public class BusinessServiceImpl implements BusinessService {
                     .businessId(business.getId())
                     .businessName(business.getName())
                     .businessNumber(business.getBusinessNumber())
-                    .createdAt(business.getCreatedAt())
+                    .createdAt(business.getCreatedAt().toInstant())
                     .build();
             //endregion
         } catch (EntityNotFoundException e) {
@@ -176,10 +181,13 @@ public class BusinessServiceImpl implements BusinessService {
         }
     }
 
-    private void batchCreateRelationships(Business business, Location location,
+    private void batchCreateRelationships(Business business, Location location, User user,
                                           KosherSupervisor supervisor, List<BusinessPhoto> photos,
                                           List<String> foodTypes, List<String> foodItemTypes) {
         //region Relationship Collections
+        List<UsersBusiness> usersRelationships = Collections.singletonList(
+                new UsersBusiness(business, user)
+        );
         List<LocationsBusiness> locationRelationships = Collections.singletonList(
                 new LocationsBusiness(business, location)
         );
@@ -203,6 +211,7 @@ public class BusinessServiceImpl implements BusinessService {
         //endregion
 
         //region Batch Save All Relationships
+        usersBusinessRepository.saveAll(usersRelationships);
         locationsBusinessRepository.saveAll(locationRelationships);
         supervisorsBusinessRepository.saveAll(supervisorRelationships);
         businessPhotosBusinessRepository.saveAll(photoRelationships);
@@ -273,6 +282,7 @@ public class BusinessServiceImpl implements BusinessService {
         }
         return businessRepository.searchBusinesses(searchTerm);
     }
+
     @Override
     public Page<BusinessPreviewResponse> filterBusinesses(BusinessFilterCriteria criteria, Pageable pageable) {
         return businessRepository.filterBusinesses(criteria, pageable);

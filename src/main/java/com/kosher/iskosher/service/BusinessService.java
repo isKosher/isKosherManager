@@ -1,5 +1,6 @@
 package com.kosher.iskosher.service;
 
+import com.kosher.iskosher.dto.UserDto;
 import com.kosher.iskosher.dto.request.BusinessCreateRequest;
 import com.kosher.iskosher.dto.request.BusinessFilterCriteria;
 import com.kosher.iskosher.dto.response.*;
@@ -15,7 +16,7 @@ public interface BusinessService {
 
     void deleteBusiness(UUID id);
 
-    BusinessCreateResponse createBusiness(BusinessCreateRequest createRequest);
+    BusinessCreateResponse createBusiness(UUID userId, BusinessCreateRequest createRequest);
 
     Page<BusinessPreviewResponse> filterBusinesses(BusinessFilterCriteria criteria, Pageable pageable);
 
