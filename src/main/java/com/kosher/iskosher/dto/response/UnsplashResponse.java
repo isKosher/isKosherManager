@@ -1,26 +1,19 @@
 
 package com.kosher.iskosher.dto.response;
+
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class UnsplashResponse {
     private Urls urls;
 
-    public Urls getUrls() {
-        return urls;
-    }
-
-    public void setUrls(Urls urls) {
-        this.urls = urls;
-    }
-
+    @Getter
+    @Setter
     public static class Urls {
         private String regular;
 
-        public String getRegular() {
-            return regular;
-        }
-
-        public void setRegular(String regular) {
-            this.regular = regular;
-        }
     }
 }
 

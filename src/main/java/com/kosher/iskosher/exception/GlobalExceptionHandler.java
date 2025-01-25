@@ -1,5 +1,6 @@
 package com.kosher.iskosher.exception;
 
+import com.google.firebase.auth.FirebaseAuthException;
 import com.kosher.iskosher.dto.response.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ValidationException;
@@ -12,7 +13,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 
@@ -32,7 +35,7 @@ public class GlobalExceptionHandler {
                 .message(ex.getMessage())
                 .error("Entity Not Found")
                 .path(request.getRequestURI())
-                .timestamp(LocalDateTime.now())
+                .timestamp(Instant.now())
                 .build();
 
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
@@ -40,19 +43,77 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BusinessCreationException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ResponseEntity<ErrorResponse> handleBusinessCreationException(
-            BusinessCreationException ex,
-            HttpServletRequest request) {
+    public ResponseEntity<ErrorResponse> handleBusinessCreationException(BusinessCreationException ex,
+                                                                         HttpServletRequest request) {
         log.error("Business creation error: {}", ex.getMessage(), ex);
 
         ErrorResponse error = ErrorResponse.builder()
                 .message(ex.getMessage())
                 .error("Business Creation Error")
                 .path(request.getRequestURI())
-                .timestamp(LocalDateTime.now())
+                .timestamp(Instant.now())
                 .build();
 
         return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatch(MethodArgumentTypeMismatchException ex,
+                                                                          HttpServletRequest request) {
+        log.error("Method argument type mismatch: {}", ex.getMessage(), ex);
+
+        ErrorResponse error = ErrorResponse.builder()
+                .message(ex.getMessage())
+                .error("Invalid parameter: " + ex.getName() + ". Expected type: " + ex.getRequiredType().getSimpleName())
+                .path(request.getRequestURI())
+                .timestamp(Instant.now())
+                .build();
+
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ResponseEntity<ErrorResponse> handleAuthenticationException(
+            AuthenticationException ex,
+            HttpServletRequest request) {
+        log.error("Authentication error: {}", ex.getMessage(), ex);
+
+        ErrorResponse error = ErrorResponse.builder()
+                .message(ex.getMessage())
+                .error("Authentication failed")
+                .path(request.getRequestURI())
+                .timestamp(Instant.now())
+                .build();
+
+        return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(FirebaseAuthException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ResponseEntity<ErrorResponse> handleFirebaseAuthException(
+            FirebaseAuthException ex,
+            HttpServletRequest request) {
+        log.error("Firebase authentication error: {}", ex.getMessage(), ex);
+
+        ErrorResponse error = ErrorResponse.builder()
+                .message(ex.getMessage())
+                .error("Authentication failed")
+                .path(request.getRequestURI())
+                .timestamp(Instant.now())
+                .build();
+
+        return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(JwtValidationException.class)
+    public ResponseEntity<ErrorResponse> handleJwtValidationException(JwtValidationException ex,
+                                                                      HttpServletRequest request) {
+        log.error("JWT validation error: {}", ex.getMessage(), ex);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(new ErrorResponse("JWT Validation Error", ex.getMessage(), request.getRequestURI(),
+                        Instant.now()));
     }
 
     @ExceptionHandler(HandlerMethodValidationException.class)
@@ -63,10 +124,10 @@ public class GlobalExceptionHandler {
                 .collect(Collectors.joining(", "));
 
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .message("Validation failed")
-                .error(errorMessage)
+                .message(errorMessage)
+                .error("Validation failed")
                 .path(request.getRequestURI())
-                .timestamp(LocalDateTime.now())
+                .timestamp(Instant.now())
                 .build();
 
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
@@ -78,7 +139,7 @@ public class GlobalExceptionHandler {
                 .message("Validation failed")
                 .error(ex.getMessage())
                 .path(request.getRequestURI())
-                .timestamp(LocalDateTime.now())
+                .timestamp(Instant.now())
                 .build();
 
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
@@ -89,7 +150,7 @@ public class GlobalExceptionHandler {
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .error("Illegal Argument")
                 .message(ex.getMessage())
-                .timestamp(LocalDateTime.now())
+                .timestamp(Instant.now())
                 .build();
 
         log.debug("Bad request: {}", ex.getMessage());
@@ -104,10 +165,10 @@ public class GlobalExceptionHandler {
         log.error("Database access error: {}", ex.getMessage(), ex);
 
         ErrorResponse error = ErrorResponse.builder()
-                .message("An error occurred while accessing the database")
+                .message(ex.getMessage())
                 .error("Database Error")
                 .path(request.getRequestURI())
-                .timestamp(LocalDateTime.now())
+                .timestamp(Instant.now())
                 .build();
 
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -121,10 +182,10 @@ public class GlobalExceptionHandler {
         log.error("Business search error: {}", ex.getMessage(), ex);
 
         ErrorResponse error = ErrorResponse.builder()
-                .message("An error occurred while searching businesses")
+                .message("An error occurred while searching businesses: " + ex.getMessage())
                 .error("Search Error")
                 .path(request.getRequestURI())
-                .timestamp(LocalDateTime.now())
+                .timestamp(Instant.now())
                 .build();
 
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -147,7 +208,7 @@ public class GlobalExceptionHandler {
                 .message(message)
                 .error("Validation Failed")
                 .path(request.getRequestURI())
-                .timestamp(LocalDateTime.now())
+                .timestamp(Instant.now())
                 .build();
 
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
@@ -164,7 +225,7 @@ public class GlobalExceptionHandler {
                 .message("An unexpected error occurred")
                 .error("Internal Server Error")
                 .path(request.getRequestURI())
-                .timestamp(LocalDateTime.now())
+                .timestamp(Instant.now())
                 .build();
 
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);

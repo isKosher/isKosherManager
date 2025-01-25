@@ -23,7 +23,7 @@ public interface BusinessRepository extends JpaRepository<Business, UUID>, Custo
                                                    @Param("offsetParam") Integer offsetParam);
 
     long countByIsActiveTrue();
-    
+
     @Query(nativeQuery = true)
     Optional<BusinessDetailedResponse> getBusinessDetails(@Param("businessId") UUID businessId);
 
