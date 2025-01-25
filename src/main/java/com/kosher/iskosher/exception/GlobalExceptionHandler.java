@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 
@@ -33,7 +34,7 @@ public class GlobalExceptionHandler {
                 .message(ex.getMessage())
                 .error("Entity Not Found")
                 .path(request.getRequestURI())
-                .timestamp(LocalDateTime.now())
+                .timestamp(Instant.now())
                 .build();
 
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
@@ -49,7 +50,7 @@ public class GlobalExceptionHandler {
                 .message(ex.getMessage())
                 .error("Business Creation Error")
                 .path(request.getRequestURI())
-                .timestamp(LocalDateTime.now())
+                .timestamp(Instant.now())
                 .build();
 
         return new ResponseEntity<>(error, HttpStatus.CONFLICT);
@@ -66,7 +67,7 @@ public class GlobalExceptionHandler {
                 .message("Authentication failed")
                 .error("Authentication Error")
                 .path(request.getRequestURI())
-                .timestamp(LocalDateTime.now())
+                .timestamp(Instant.now())
                 .build();
 
         return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
@@ -83,7 +84,7 @@ public class GlobalExceptionHandler {
                 .message("Authentication failed")
                 .error("Firebase Authentication Error")
                 .path(request.getRequestURI())
-                .timestamp(LocalDateTime.now())
+                .timestamp(Instant.now())
                 .build();
 
         return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
@@ -95,7 +96,7 @@ public class GlobalExceptionHandler {
         log.error("JWT validation error: {}", ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(new ErrorResponse("JWT Validation Error", ex.getMessage(), request.getRequestURI(),
-                        LocalDateTime.now()));
+                        Instant.now()));
     }
 
     @ExceptionHandler(HandlerMethodValidationException.class)
@@ -109,7 +110,7 @@ public class GlobalExceptionHandler {
                 .message("Validation failed")
                 .error(errorMessage)
                 .path(request.getRequestURI())
-                .timestamp(LocalDateTime.now())
+                .timestamp(Instant.now())
                 .build();
 
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
@@ -121,7 +122,7 @@ public class GlobalExceptionHandler {
                 .message("Validation failed")
                 .error(ex.getMessage())
                 .path(request.getRequestURI())
-                .timestamp(LocalDateTime.now())
+                .timestamp(Instant.now())
                 .build();
 
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
@@ -132,7 +133,7 @@ public class GlobalExceptionHandler {
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .error("Illegal Argument")
                 .message(ex.getMessage())
-                .timestamp(LocalDateTime.now())
+                .timestamp(Instant.now())
                 .build();
 
         log.debug("Bad request: {}", ex.getMessage());
@@ -150,7 +151,7 @@ public class GlobalExceptionHandler {
                 .message("An error occurred while accessing the database")
                 .error("Database Error")
                 .path(request.getRequestURI())
-                .timestamp(LocalDateTime.now())
+                .timestamp(Instant.now())
                 .build();
 
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -167,7 +168,7 @@ public class GlobalExceptionHandler {
                 .message("An error occurred while searching businesses")
                 .error("Search Error")
                 .path(request.getRequestURI())
-                .timestamp(LocalDateTime.now())
+                .timestamp(Instant.now())
                 .build();
 
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -190,7 +191,7 @@ public class GlobalExceptionHandler {
                 .message(message)
                 .error("Validation Failed")
                 .path(request.getRequestURI())
-                .timestamp(LocalDateTime.now())
+                .timestamp(Instant.now())
                 .build();
 
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
@@ -207,7 +208,7 @@ public class GlobalExceptionHandler {
                 .message("An unexpected error occurred")
                 .error("Internal Server Error")
                 .path(request.getRequestURI())
-                .timestamp(LocalDateTime.now())
+                .timestamp(Instant.now())
                 .build();
 
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
