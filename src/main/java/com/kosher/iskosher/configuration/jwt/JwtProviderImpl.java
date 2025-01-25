@@ -3,7 +3,6 @@ package com.kosher.iskosher.configuration.jwt;
 import com.kosher.iskosher.dto.UserDto;
 import com.kosher.iskosher.exception.JwtValidationException;
 import io.jsonwebtoken.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -52,7 +51,18 @@ public class JwtProviderImpl implements JwtProvider {
             String id = claims.get("user_id", String.class);
             return UUID.fromString(id);
         } catch (Exception e) {
-            throw new JwtValidationException("Error extracting user_id from token", e);
+            throw new JwtValidationException("Error extracting user_id from access token", e);
+        }
+    }
+
+    @Override
+    public UUID extractUserIdFromRefreshToken(String token) {
+        try {
+            Claims claims = Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token).getBody();
+            String id = claims.get("user_id", String.class);
+            return UUID.fromString(id);
+        } catch (Exception e) {
+            throw new JwtValidationException("Error extracting user_id from refresh token", e);
         }
     }
 
@@ -71,6 +81,7 @@ public class JwtProviderImpl implements JwtProvider {
     public String generateRefreshToken(UserDto user) {
         return Jwts.builder()
                 .setSubject(user.email())
+                .claim("user_id", user.id())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + refreshTokenValidity))
                 .signWith(SignatureAlgorithm.HS256, SECRET_KEY)

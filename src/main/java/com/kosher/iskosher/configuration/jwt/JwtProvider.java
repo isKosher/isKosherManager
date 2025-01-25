@@ -17,4 +17,6 @@ public interface JwtProvider {
 
     UUID extractUserIdFromAccessToken(String token);
 
+    UUID extractUserIdFromRefreshToken(String token);
+
 }
