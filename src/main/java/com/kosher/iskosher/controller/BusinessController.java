@@ -1,17 +1,17 @@
 package com.kosher.iskosher.controller;
 
-import com.kosher.iskosher.dto.request.BusinessCreateRequest;
 import com.kosher.iskosher.dto.request.BusinessFilterCriteria;
-import com.kosher.iskosher.dto.response.*;
+import com.kosher.iskosher.dto.response.BusinessDetailedResponse;
+import com.kosher.iskosher.dto.response.BusinessPreviewResponse;
+import com.kosher.iskosher.dto.response.BusinessSearchResponse;
+import com.kosher.iskosher.dto.response.PageResponse;
 import com.kosher.iskosher.service.BusinessService;
-import jakarta.validation.Valid;
 import jakarta.validation.ValidationException;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -26,9 +26,9 @@ import java.util.UUID;
 
 @Slf4j
 @RestController
+@RequiredArgsConstructor
 @CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping(path = "/api/v1/businesses")
-@RequiredArgsConstructor
 public class BusinessController {
 
     private final BusinessService businessService;
@@ -67,7 +67,6 @@ public class BusinessController {
         }
     }
 
-
     @GetMapping("/filter")
     public PageResponse<BusinessPreviewResponse> searchBusinesses(
             BusinessFilterCriteria criteria,
@@ -93,17 +92,5 @@ public class BusinessController {
         return ResponseEntity.ok(businessService.getBusinessDetails(id));
     }
 
-    //TODO: finish isActive to false...
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteBusiness(
-            @PathVariable @NotNull UUID id) {
-        businessService.deleteBusiness(id);
-        return ResponseEntity.noContent().build();
-    }
 
-    @PostMapping()
-    public ResponseEntity<BusinessCreateResponse> createBusiness(@RequestBody @Valid BusinessCreateRequest dto) {
-        BusinessCreateResponse result = businessService.createBusiness(dto);
-        return ResponseEntity.ok(result);
-    }
 }

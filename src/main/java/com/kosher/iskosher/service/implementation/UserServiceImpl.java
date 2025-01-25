@@ -40,6 +40,7 @@ public class UserServiceImpl implements UserService {
 
         return new UserDto(
                 user.getId(),
+                user.getGoogleId(),
                 user.getName(),
                 user.getEmail(),
                 user.getIsManager(),
