@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
+import java.time.Instant;
 import java.util.Date;
 import java.util.UUID;
 
@@ -20,16 +21,22 @@ public class JwtProviderImpl implements JwtProvider {
     private long accessTokenValidity;
 
     private long refreshTokenValidity;
+    private String issuer;
+    private String audience;
 
     private final Key SECRET_KEY;
 
 
     public JwtProviderImpl(@Value("${jwt.secret}") String secret,
                            @Value("${jwt.access-token-validity}") long accessTokenValidity,
-                           @Value("${jwt.refresh-token-validity}") long refreshTokenValidity) {
+                           @Value("${jwt.refresh-token-validity}") long refreshTokenValidity,
+                           @Value("${jwt.issuer}") String issuer,
+                           @Value("${jwt.audience}") String audience) {
         this.secret = secret;
         this.accessTokenValidity = accessTokenValidity;
         this.refreshTokenValidity = refreshTokenValidity;
+        this.issuer = issuer;
+        this.audience = audience;
 
         byte[] secretBytes = secret.getBytes(StandardCharsets.UTF_8);
         if (secretBytes.length < 32) {
@@ -66,24 +73,26 @@ public class JwtProviderImpl implements JwtProvider {
         }
     }
 
+
     @Override
     public String generateAccessToken(UserDto user) {
-        return Jwts.builder()
-                .setSubject(user.email())
-                .claim("user_id", user.id())
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + accessTokenValidity))
-                .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
-                .compact();
+        return generateToken(user, accessTokenValidity);
     }
 
     @Override
     public String generateRefreshToken(UserDto user) {
+        return generateToken(user, refreshTokenValidity);
+    }
+
+    private String generateToken(UserDto user, long validity) {
+        Instant now = Instant.now();
         return Jwts.builder()
                 .setSubject(user.email())
-                .claim("user_id", user.id())
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + refreshTokenValidity))
+                .claim("user_id", user.id().toString())
+                .setIssuedAt(Date.from(now))
+                .setExpiration(Date.from(now.plusMillis(validity)))
+                .setIssuer(issuer)
+                .setAudience(audience)
                 .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
                 .compact();
     }
