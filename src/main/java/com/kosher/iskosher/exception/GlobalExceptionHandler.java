@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -56,6 +57,22 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.CONFLICT);
     }
 
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatch(MethodArgumentTypeMismatchException ex,
+                                                                          HttpServletRequest request) {
+        log.error("Method argument type mismatch: {}", ex.getMessage(), ex);
+
+        ErrorResponse error = ErrorResponse.builder()
+                .message(ex.getMessage())
+                .error("Invalid parameter: " + ex.getName() + ". Expected type: " + ex.getRequiredType().getSimpleName())
+                .path(request.getRequestURI())
+                .timestamp(Instant.now())
+                .build();
+
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(AuthenticationException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ResponseEntity<ErrorResponse> handleAuthenticationException(
@@ -64,8 +81,8 @@ public class GlobalExceptionHandler {
         log.error("Authentication error: {}", ex.getMessage(), ex);
 
         ErrorResponse error = ErrorResponse.builder()
-                .message("Authentication failed")
-                .error("Authentication Error")
+                .message(ex.getMessage())
+                .error("Authentication failed")
                 .path(request.getRequestURI())
                 .timestamp(Instant.now())
                 .build();
@@ -81,8 +98,8 @@ public class GlobalExceptionHandler {
         log.error("Firebase authentication error: {}", ex.getMessage(), ex);
 
         ErrorResponse error = ErrorResponse.builder()
-                .message("Authentication failed")
-                .error("Firebase Authentication Error")
+                .message(ex.getMessage())
+                .error("Authentication failed")
                 .path(request.getRequestURI())
                 .timestamp(Instant.now())
                 .build();
@@ -107,8 +124,8 @@ public class GlobalExceptionHandler {
                 .collect(Collectors.joining(", "));
 
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .message("Validation failed")
-                .error(errorMessage)
+                .message(errorMessage)
+                .error("Validation failed")
                 .path(request.getRequestURI())
                 .timestamp(Instant.now())
                 .build();
@@ -148,7 +165,7 @@ public class GlobalExceptionHandler {
         log.error("Database access error: {}", ex.getMessage(), ex);
 
         ErrorResponse error = ErrorResponse.builder()
-                .message("An error occurred while accessing the database")
+                .message(ex.getMessage())
                 .error("Database Error")
                 .path(request.getRequestURI())
                 .timestamp(Instant.now())
@@ -165,7 +182,7 @@ public class GlobalExceptionHandler {
         log.error("Business search error: {}", ex.getMessage(), ex);
 
         ErrorResponse error = ErrorResponse.builder()
-                .message("An error occurred while searching businesses")
+                .message("An error occurred while searching businesses: " + ex.getMessage())
                 .error("Search Error")
                 .path(request.getRequestURI())
                 .timestamp(Instant.now())

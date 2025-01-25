@@ -18,7 +18,6 @@ public class ErrorResponse {
     private String message;
     private String error;
     private String path;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", timezone = "UTC")
     private Instant timestamp;
 
 }
