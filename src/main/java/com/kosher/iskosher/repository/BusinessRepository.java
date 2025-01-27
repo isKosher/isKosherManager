@@ -24,6 +24,32 @@ public interface BusinessRepository extends JpaRepository<Business, UUID>, Custo
 
     long countByIsActiveTrue();
 
+        @Query("""
+        SELECT DISTINCT b FROM Business b
+        LEFT JOIN FETCH b.kosherType kt
+        LEFT JOIN FETCH b.kosherCertificate kc
+        LEFT JOIN FETCH b.businessType bt
+        LEFT JOIN FETCH b.locationsVsBusinesses lb
+        LEFT JOIN FETCH lb.location l
+        LEFT JOIN FETCH l.address a
+        LEFT JOIN FETCH l.city c
+        LEFT JOIN FETCH b.supervisorsVsBusinesses sb
+        LEFT JOIN FETCH sb.supervisor ks
+        LEFT JOIN FETCH b.foodTypeVsBusinesses ftb
+        LEFT JOIN FETCH ftb.foodType ft
+        LEFT JOIN FETCH b.businessPhotosVsBusinesses bpb
+        LEFT JOIN FETCH bpb.businessPhotos bp
+        WHERE EXISTS (
+            SELECT 1
+            FROM UsersBusiness ub 
+            WHERE ub.business = b 
+            AND ub.user.id = :userId
+        )
+        AND b.isActive = true
+        """)
+        List<Business> findAllBusinessDetailsByUserId(@Param("userId") UUID userId);
+
+
     @Query(nativeQuery = true)
     Optional<BusinessDetailedResponse> getBusinessDetails(@Param("businessId") UUID businessId);
 
