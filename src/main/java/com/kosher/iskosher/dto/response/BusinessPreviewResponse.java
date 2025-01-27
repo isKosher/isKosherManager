@@ -4,18 +4,15 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kosher.iskosher.dto.BusinessPhotoDto;
 import com.kosher.iskosher.types.LocationInfo;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
-import lombok.experimental.SuperBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 @Data
-@SuperBuilder
 @NoArgsConstructor
 @Accessors(chain = true)
 public class BusinessPreviewResponse {
