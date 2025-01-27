@@ -236,6 +236,63 @@ public class BusinessServiceImpl implements BusinessService {
         return businessRepository.save(business);
     }
 
+    public List<BusinessDetailedResponse> getBusinessDetailsByUserId(UUID userId) {
+        List<Business> businesses = businessRepository.findAllBusinessDetailsByUserId(userId);
+        return businesses.stream()
+                .map(this::mapToBusinessDetailedResponse)
+                .collect(Collectors.toList());
+    }
+
+    private BusinessDetailedResponse mapToBusinessDetailedResponse(Business business) {
+        String address = business.getLocationsVsBusinesses().stream()
+                .map(lb -> lb.getLocation().getAddress().getName())
+                .findFirst().orElse(null);
+        return BusinessDetailedResponse.builder()
+                .businessId(business.getId())
+                .businessName(business.getName())
+                .businessDetails(business.getDetails())
+                .businessRating(business.getRating())
+                //.businessNumber(business.getBusinessNumber())
+                .kosherType(business.getKosherType().getName())
+                .businessCertificate(business.getKosherCertificate().getCertificate())
+                .expirationDate(business.getKosherCertificate().getExpirationDate())
+                .businessType(business.getBusinessType().getName())
+
+                // מיפוי המיקום הראשון של העסק
+                business.getLocationsVsBusinesses().stream()
+                        .map(lb -> lb.getLocation().getAddress().getName())
+                        .findFirst().orElse(null)
+                .streetNumber(business.getLocationsVsBusinesses().stream()
+                        .map(lb -> lb.getLocation().getStreetNumber())
+                        .findFirst().orElse(null))
+                .city(business.getLocationsVsBusinesses().stream()
+                        .map(lb -> lb.getLocation().getCity().getName())
+                        .findFirst().orElse(null))
+
+                // מיפוי המשגיח הראשון
+                .supervisorName(business.getSupervisorsVsBusinesses().stream()
+                        .map(sb -> sb.getSupervisor().getName())
+                        .findFirst().orElse(null))
+                .supervisorContact(business.getSupervisorsVsBusinesses().stream()
+                        .map(sb -> sb.getSupervisor().getContactInfo())
+                        .findFirst().orElse(null))
+                .supervisorAuthority(business.getSupervisorsVsBusinesses().stream()
+                        .map(sb -> sb.getSupervisor().getAuthority())
+                        .findFirst().orElse(null))
+
+                // מיפוי רשימות
+                .foodTypes(business.getFoodTypeVsBusinesses().stream()
+                        .map(ft -> ft.getFoodType().getName())
+                        .collect(Collectors.toList()))
+                .foodItemTypes(business.getFoodItemTypeVsBusinesses().stream()
+                        .map(fit -> fit.getFoodItemType().getName())
+                        .collect(Collectors.toList()))
+                .businessPhotos(business.getBusinessPhotosVsBusinesses().stream()
+                        .map(bp -> bp.getBusinessPhotos().getUrl())
+                        .collect(Collectors.toList()))
+                .build();
+    }
+
     @Override
     public PageResponse<BusinessPreviewResponse> getBusinessPreviews(Pageable pageable) {
         int limit = pageable.getPageSize();
