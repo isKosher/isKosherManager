@@ -25,6 +25,7 @@ public class AuthServiceImpl implements AuthService {
     private final GoogleAuthService googleAuthService;
     private final UserRepository userRepository;
     private final JwtProvider jwtProvider;
+    private final UserMapper userMapper;
 
 
     /**
@@ -73,7 +74,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private AuthResponse generateAuthResponse(User user) {
-        UserDto userDto = UserMapper.mapToUserDto(user);
+        UserDto userDto = userMapper.mapToUserDto(user);
         String accessToken = jwtProvider.generateAccessToken(userDto);
         String refreshToken = jwtProvider.generateRefreshToken(userDto);
 
