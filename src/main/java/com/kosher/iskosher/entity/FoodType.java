@@ -1,5 +1,6 @@
 package com.kosher.iskosher.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.kosher.iskosher.common.interfaces.NamedEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -23,8 +24,8 @@ public class FoodType implements NamedEntity {
     @NotNull
     @Column(name = "name", nullable = false, length = Integer.MAX_VALUE)
     private String name;
-
-    @OneToMany(mappedBy = "foodType")
+    @OneToMany(mappedBy = "foodType", fetch = FetchType.LAZY)
+    @JsonManagedReference
     private Set<FoodTypeBusiness> foodTypeBusinesses = new LinkedHashSet<>();
 
 }

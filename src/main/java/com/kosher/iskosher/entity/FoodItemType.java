@@ -25,7 +25,7 @@ public class FoodItemType implements NamedEntity {
     @Column(name = "name", nullable = false, length = Integer.MAX_VALUE)
     private String name;
 
-    @OneToMany(mappedBy = "foodItemType",fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "foodItemType", fetch = FetchType.LAZY)
     @JsonManagedReference
     private Set<FoodItemTypeBusiness> foodItemTypeBusinesses = new LinkedHashSet<>();
 
