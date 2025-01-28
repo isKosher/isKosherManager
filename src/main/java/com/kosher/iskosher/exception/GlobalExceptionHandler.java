@@ -2,6 +2,7 @@ package com.kosher.iskosher.exception;
 
 import com.google.firebase.auth.FirebaseAuthException;
 import com.kosher.iskosher.dto.response.ErrorResponse;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ValidationException;
 import lombok.extern.slf4j.Slf4j;
@@ -86,6 +87,23 @@ public class GlobalExceptionHandler {
                 .build();
 
         return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(ServletException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<ErrorResponse> handleServletException(
+            ServletException ex,
+            HttpServletRequest request) {
+        log.error("Servlet exception: {}", ex.getMessage());
+
+        ErrorResponse error = ErrorResponse.builder()
+                .message("Servlet error: " + ex.getMessage())
+                .error("Bad Request")
+                .path(request.getRequestURI())
+                .timestamp(Instant.now())
+                .build();
+
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(FirebaseAuthException.class)
