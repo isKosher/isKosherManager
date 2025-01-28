@@ -1,23 +1,19 @@
 package com.kosher.iskosher.controller;
 
-import com.kosher.iskosher.common.lookup.LookupController;
 import com.kosher.iskosher.configuration.CurrentUser;
-import com.kosher.iskosher.dto.CityDto;
 import com.kosher.iskosher.dto.request.BusinessCreateRequest;
 import com.kosher.iskosher.dto.response.BusinessCreateResponse;
-import com.kosher.iskosher.entity.City;
+import com.kosher.iskosher.dto.response.UserOwnedBusinessResponse;
 import com.kosher.iskosher.service.BusinessService;
 import com.kosher.iskosher.service.UserService;
-import com.kosher.iskosher.service.lookups.CityService;
 import com.kosher.iskosher.types.CustomAuthentication;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -28,14 +24,16 @@ public class UserController {
     private final UserService userService;
     private final BusinessService businessService;
 
-    @GetMapping("/test")
-    public String getCurrentUserName(@CurrentUser CustomAuthentication currentUser) {
-        System.out.println(currentUser);
-        if (currentUser != null) {
-            return "Hello, " + currentUser.getName();
-        } else {
-            return "No user is logged in.";
+
+    @GetMapping("/my-businesses")
+    public ResponseEntity<?> getOwnedBusinesses(@CurrentUser CustomAuthentication currentUser) {
+        List<UserOwnedBusinessResponse> businessResponses =
+                userService.getBusinessDetailsByUserId(currentUser.getUserId());
+        if (businessResponses.isEmpty()) {
+            return ResponseEntity.notFound().build();
         }
+
+        return ResponseEntity.ok(businessResponses);
     }
 
 
