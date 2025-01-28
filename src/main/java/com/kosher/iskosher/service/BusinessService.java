@@ -1,9 +1,9 @@
 package com.kosher.iskosher.service;
 
-import com.kosher.iskosher.dto.UserDto;
 import com.kosher.iskosher.dto.request.BusinessCreateRequest;
 import com.kosher.iskosher.dto.request.BusinessFilterCriteria;
 import com.kosher.iskosher.dto.response.*;
+import com.kosher.iskosher.entity.Business;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
