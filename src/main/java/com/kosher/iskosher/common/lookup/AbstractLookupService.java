@@ -61,6 +61,17 @@ public abstract class AbstractLookupService<T extends NamedEntity, D extends Nam
         }
     }
 
+    public List<T> getOrCreateEntities(List<String> names) {
+        return names.stream()
+                .map(this::getOrCreateEntity)
+                .collect(Collectors.toList());
+    }
+
+    public T getExistingEntity(String name) {
+        return repository.findByNameIgnoreCase(name)
+                .orElseThrow(() -> new EntityNotFoundException(entityClass.getSimpleName(), "name", name));
+    }
+
     public List<D> findAll() {
         try {
             return repository.findAll().stream()
