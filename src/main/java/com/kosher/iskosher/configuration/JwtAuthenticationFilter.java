@@ -8,6 +8,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -26,6 +27,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtProvider jwtService;
 
     private final ObjectMapper objectMapper;
+
+    @Value("${spring.security.private-urls}")
+    private String privateUrls;
+
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        // Skip JWT authentication for non-protected paths
+        return !path.startsWith(privateUrls);
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
@@ -71,8 +83,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private void handleAuthenticationError(HttpServletRequest request, HttpServletResponse response,
-                                           String errorMessage)
-            throws IOException {
+                                           String errorMessage) throws IOException {
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .message("Authentication failed")
                 .error(errorMessage)
