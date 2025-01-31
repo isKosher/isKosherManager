@@ -4,12 +4,11 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.time.Instant;
-import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Data
 @Builder
-public class BusinessCreateResponse {
+public class BusinessResponse {
     private UUID businessId;
     private String businessName;
     private String businessNumber;

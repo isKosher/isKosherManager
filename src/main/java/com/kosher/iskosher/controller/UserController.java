@@ -3,7 +3,7 @@ package com.kosher.iskosher.controller;
 import com.kosher.iskosher.configuration.CurrentUser;
 import com.kosher.iskosher.dto.request.BusinessCreateRequest;
 import com.kosher.iskosher.dto.request.BusinessUpdateRequest;
-import com.kosher.iskosher.dto.response.BusinessCreateResponse;
+import com.kosher.iskosher.dto.response.BusinessResponse;
 import com.kosher.iskosher.dto.response.UserOwnedBusinessResponse;
 import com.kosher.iskosher.service.BusinessService;
 import com.kosher.iskosher.service.UserService;
@@ -38,14 +38,14 @@ public class UserController {
     }
 
     @PutMapping("/update-business")
-    public ResponseEntity<BusinessCreateResponse> updateBusiness(@CurrentUser CustomAuthentication currentUser,
-                                                                 @RequestBody @Valid BusinessUpdateRequest dto) {
+    public ResponseEntity<BusinessResponse> updateBusiness(@CurrentUser CustomAuthentication currentUser,
+                                                           @RequestBody @Valid BusinessUpdateRequest dto) {
         return ResponseEntity.ok(businessService.updateBusiness(currentUser.getUserId(), dto));
     }
 
     @PostMapping("create-business")
-    public ResponseEntity<BusinessCreateResponse> createBusiness(@CurrentUser CustomAuthentication currentUser,
-                                                                 @RequestBody @Valid BusinessCreateRequest dto) {
+    public ResponseEntity<BusinessResponse> createBusiness(@CurrentUser CustomAuthentication currentUser,
+                                                           @RequestBody @Valid BusinessCreateRequest dto) {
         return ResponseEntity.ok(businessService.createBusiness(currentUser.getUserId(), dto));
     }
 

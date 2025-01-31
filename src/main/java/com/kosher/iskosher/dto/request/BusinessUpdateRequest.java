@@ -1,9 +1,5 @@
 package com.kosher.iskosher.dto.request;
 
-import com.kosher.iskosher.dto.BusinessPhotoDto;
-import com.kosher.iskosher.dto.KosherCertificateDto;
-import com.kosher.iskosher.dto.KosherSupervisorDto;
-import com.kosher.iskosher.dto.LocationDto;
 import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
@@ -16,13 +12,9 @@ public record BusinessUpdateRequest(
         String businessPhone,
         String businessDetails,
         Short businessRating,
-        LocationDto location,
-        String kosherTypeName,
-        String businessTypeName,
+        String kosherType,
+        String businessType,
         List<String> foodTypes,
-        List<String> foodItemTypes,
-        List<BusinessPhotoDto> businessPhotos,
-        KosherSupervisorDto supervisor,
-        KosherCertificateDto kosherCertificate
+        List<String> foodItemTypes
 ) {
 }
