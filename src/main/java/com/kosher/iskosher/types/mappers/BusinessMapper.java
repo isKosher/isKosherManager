@@ -41,11 +41,10 @@ public class BusinessMapper {
                 .businessRating(business.getRating())
                 .businessNumber(business.getBusinessNumber())
                 .kosherType(business.getKosherType().getName())
-                .kosherCertificate(business.getKosherCertificate().getCertificate())
-                .expirationDate(business.getKosherCertificate().getExpirationDate())
                 .businessType(business.getBusinessType().getName())
                 .location(getLocationInfo(business))
                 .supervisors(getSupervisorsDto(business))
+                .certificates(getCertificateDto(business))
                 .foodTypes(business.getFoodTypeVsBusinesses().stream()
                         .map(ft -> ft.getFoodType().getName())
                         .collect(Collectors.toList()))
@@ -81,5 +80,10 @@ public class BusinessMapper {
                         sb.getSupervisor().getContactInfo(),
                         sb.getSupervisor().getAuthority()))
                 .collect(Collectors.toList());
+    }
+
+    private List<KosherCertificateDto> getCertificateDto(Business business) {
+        return List.of(new KosherCertificateDto(business.getKosherCertificate().getCertificate(),
+                business.getKosherCertificate().getExpirationDate()));
     }
 }

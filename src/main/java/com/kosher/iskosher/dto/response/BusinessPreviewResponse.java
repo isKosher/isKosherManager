@@ -1,16 +1,15 @@
 package com.kosher.iskosher.dto.response;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kosher.iskosher.dto.BusinessPhotoDto;
 import com.kosher.iskosher.types.LocationInfo;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
+import static com.kosher.iskosher.common.utils.JsonParserUtil.*;
 
 @Data
 @NoArgsConstructor
@@ -50,36 +49,16 @@ public class BusinessPreviewResponse {
     }
 
     public List<String> getFoodTypes() {
-        return parseJsonArray(foodTypes);
+        return parseJson(foodTypes, String.class);
     }
 
     public List<String> getFoodItemTypes() {
-        return parseJsonArray(foodItemTypes);
+        return parseJson(foodItemTypes, String.class);
     }
 
 
     public List<BusinessPhotoDto> getBusinessPhotos() {
-        return parseJsonToBusinessPhotos(businessPhotos);
+        return parseJson(businessPhotos, BusinessPhotoDto.class);
     }
 
-
-    private List<BusinessPhotoDto> parseJsonToBusinessPhotos(String json) {
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            return mapper.readValue(json, new TypeReference<List<BusinessPhotoDto>>() {
-            });
-        } catch (Exception e) {
-            return new ArrayList<>();
-        }
-    }
-
-    private List<String> parseJsonArray(String json) {
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            return mapper.readValue(json, new TypeReference<List<String>>() {
-            });
-        } catch (Exception e) {
-            return new ArrayList<>();
-        }
-    }
 }

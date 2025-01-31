@@ -22,7 +22,7 @@ public class KosherCertificateServiceImpl implements KosherCertificateService {
         try {
             KosherCertificate certificate = new KosherCertificate();
             certificate.setCertificate(dto.certificate());
-            certificate.setExpirationDate(LocalDate.parse(dto.expirationDate()));
+            certificate.setExpirationDate(dto.expirationDate());
             return kosherCertificateRepository.save(certificate);
         } catch (BusinessCreationException e) {
             throw e;
