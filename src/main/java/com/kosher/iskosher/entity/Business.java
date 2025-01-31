@@ -37,11 +37,8 @@ import java.util.UUID;
                         @ColumnResult(name = "business_details", type = String.class),
                         @ColumnResult(name = "location_details", type = String.class),
                         @ColumnResult(name = "business_rating", type = Short.class),
-                        @ColumnResult(name = "supervisor_name", type = String.class),
-                        @ColumnResult(name = "supervisor_contact", type = String.class),
-                        @ColumnResult(name = "supervisor_authority", type = String.class),
-                        @ColumnResult(name = "business_certificate", type = String.class),
-                        @ColumnResult(name = "expiration_date", type = LocalDate.class)
+                        @ColumnResult(name = "kosher_supervisors", type = String.class),
+                        @ColumnResult(name = "kosher_certificates", type = String.class)
                 }
         )
 )
@@ -64,11 +61,8 @@ import java.util.UUID;
                     b.business_details,
                     b.location_details,
                     b.business_rating,
-                    b.supervisor_name,
-                    b.supervisor_contact,
-                    b.supervisor_authority,
-                    b.business_certificate,
-                    b.expiration_date
+                    b.kosher_supervisors,
+                    b.kosher_certificates
                 FROM get_business_details(:businessId) AS b
                 """,
         resultSetMapping = "BusinessDetailedResponseMapping"

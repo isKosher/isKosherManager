@@ -1,5 +1,7 @@
 package com.kosher.iskosher.dto;
 
-public record KosherSupervisorDto(String name, String contactInfo, String authority) {
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public record KosherSupervisorDto(String name, @JsonProperty("contact_info") String contactInfo, String authority) {
 }
 
