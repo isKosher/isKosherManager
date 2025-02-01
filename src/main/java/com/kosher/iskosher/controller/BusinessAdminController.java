@@ -11,6 +11,7 @@ import com.kosher.iskosher.types.CustomAuthentication;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,12 +20,11 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/user")
-public class UserController {
+@RequestMapping("/api/v1/admin/businesses")
+public class BusinessAdminController {
 
     private final UserService userService;
     private final BusinessService businessService;
-
 
     @GetMapping("/my-businesses")
     public ResponseEntity<?> getOwnedBusinesses(@CurrentUser CustomAuthentication currentUser) {
@@ -46,7 +46,7 @@ public class UserController {
     @PostMapping("create-business")
     public ResponseEntity<BusinessResponse> createBusiness(@CurrentUser CustomAuthentication currentUser,
                                                            @RequestBody @Valid BusinessCreateRequest dto) {
-        return ResponseEntity.ok(businessService.createBusiness(currentUser.getUserId(), dto));
+        return ResponseEntity.status(HttpStatus.CREATED).body(businessService.createBusiness(currentUser.getUserId(), dto));
     }
 
     //TODO: finish isActive to false and valid business by userId...
