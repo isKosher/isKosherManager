@@ -1,8 +1,10 @@
 package com.kosher.iskosher.types.mappers;
 
-import com.kosher.iskosher.dto.*;
+import com.kosher.iskosher.dto.BusinessPhotoDto;
+import com.kosher.iskosher.dto.KosherCertificateDto;
+import com.kosher.iskosher.dto.KosherSupervisorDto;
 import com.kosher.iskosher.dto.response.UserOwnedBusinessResponse;
-import com.kosher.iskosher.entity.*;
+import com.kosher.iskosher.entity.Business;
 import com.kosher.iskosher.types.LocationInfo;
 import org.springframework.stereotype.Component;
 
@@ -11,27 +13,6 @@ import java.util.stream.Collectors;
 
 @Component
 public class BusinessMapper {
-
-    public UserDto convertToUserDto(User user) {
-        List<BusinessDto> businessDtos = user.getUsersBusinesses().stream()
-                .map(usersBusiness -> {
-                    Business business = usersBusiness.getBusiness();
-                    return new BusinessDto(
-                            business.getId(),
-                            business.getName()
-                    );
-                })
-                .collect(Collectors.toList());
-
-        return new UserDto(
-                user.getId(),
-                user.getGoogleId(),
-                user.getName(),
-                user.getEmail(),
-                user.getIsManager(),
-                businessDtos
-        );
-    }
 
     public UserOwnedBusinessResponse mapToUserOwnedBusinessResponse(Business business) {
         return UserOwnedBusinessResponse.builder()
@@ -58,6 +39,7 @@ public class BusinessMapper {
     private List<BusinessPhotoDto> getBusinessPhotosDto(Business business) {
         return business.getBusinessPhotosVsBusinesses().stream()
                 .map(pb -> new BusinessPhotoDto(
+                        pb.getId(),
                         pb.getBusinessPhotos().getUrl(),
                         pb.getBusinessPhotos().getPhotoInfo()))
                 .collect(Collectors.toList());
@@ -75,15 +57,11 @@ public class BusinessMapper {
 
     private List<KosherSupervisorDto> getSupervisorsDto(Business business) {
         return business.getSupervisorsVsBusinesses().stream()
-                .map(sb -> new KosherSupervisorDto(
-                        sb.getSupervisor().getName(),
-                        sb.getSupervisor().getContactInfo(),
-                        sb.getSupervisor().getAuthority()))
+                .map(sb -> KosherSupervisorMapper.INSTANCE.toDTO(sb.getSupervisor()))
                 .collect(Collectors.toList());
     }
 
     private List<KosherCertificateDto> getCertificateDto(Business business) {
-        return List.of(new KosherCertificateDto(business.getKosherCertificate().getCertificate(),
-                business.getKosherCertificate().getExpirationDate()));
+        return List.of(KosherCertificateMapper.INSTANCE.toDTO(business.getKosherCertificate()));
     }
 }
