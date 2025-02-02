@@ -3,9 +3,10 @@ package com.kosher.iskosher.service.implementation;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.kosher.iskosher.dto.response.*;
 import com.kosher.iskosher.dto.request.BusinessCreateRequest;
 import com.kosher.iskosher.dto.request.BusinessFilterCriteria;
+import com.kosher.iskosher.dto.request.BusinessUpdateRequest;
+import com.kosher.iskosher.dto.response.*;
 import com.kosher.iskosher.entity.*;
 import com.kosher.iskosher.exception.BusinessCreationException;
 import com.kosher.iskosher.exception.EntityNotFoundException;
@@ -16,27 +17,23 @@ import com.kosher.iskosher.service.lookups.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static com.kosher.iskosher.common.constant.AppConstants.*;
+import static com.kosher.iskosher.common.utils.ManyToManyUpdateUtil.updateManyToManyRelationship;
 
 @Slf4j
 @Service
-@Transactional
 @RequiredArgsConstructor
 public class BusinessServiceImpl implements BusinessService {
+
     private final UserRepository userRepository;
 
     //region Repository Dependencies
@@ -125,7 +122,8 @@ public class BusinessServiceImpl implements BusinessService {
     //endregion
 
     @Override
-    public BusinessCreateResponse createBusiness(UUID userId, BusinessCreateRequest dto) {
+    @Transactional
+    public BusinessResponse createBusiness(UUID userId, BusinessCreateRequest dto) {
         try {
             kosherCertificateService.existsByCertificate(dto.kosherCertificate().certificate());
 
@@ -150,7 +148,7 @@ public class BusinessServiceImpl implements BusinessService {
             List<BusinessPhoto> photos = photoService.createBusinessPhotos(dto.businessPhotos(),
                     dto.foodItemTypes().get(new Random().nextInt(dto.foodItemTypes().size())));
             Location location = locationService.createLocation(dto.location(), city, address);
-            KosherSupervisor supervisor = kosherSupervisorService.createSupervisor(dto.supervisor());
+            KosherSupervisor supervisor = kosherSupervisorService.createSupervisorOnly(dto.supervisor());
             KosherCertificate certificate = kosherCertificateService.createCertificate(dto.kosherCertificate());
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new EntityNotFoundException("User", "id", userId));
@@ -162,7 +160,7 @@ public class BusinessServiceImpl implements BusinessService {
             log.info("Successfully created business: {} with ID: {}", business.getName(), business.getId());
 
             //region Return Detailed Response
-            return BusinessCreateResponse.builder()
+            return BusinessResponse.builder()
                     .businessId(business.getId())
                     .businessName(business.getName())
                     .businessNumber(business.getBusinessNumber())
@@ -237,6 +235,64 @@ public class BusinessServiceImpl implements BusinessService {
     }
 
     @Override
+    @Transactional
+    public BusinessResponse updateBusiness(UUID userId, BusinessUpdateRequest dto) {
+        Business business = businessRepository.findById(dto.businessId())
+                .orElseThrow(() -> new EntityNotFoundException("Business", "id", dto.businessId()));
+
+        boolean isOwner = business.getUsersVsBusinesses().stream()
+                .anyMatch(ub -> ub.getUser().getId().equals(userId));
+
+        if (!isOwner) {
+            log.error("You are not authorized to update this business: {}", dto.businessName());
+        }
+
+        if (dto.businessName() != null) business.setName(dto.businessName());
+        if (dto.businessPhone() != null) business.setBusinessNumber(dto.businessPhone());
+        if (dto.businessDetails() != null) business.setDetails(dto.businessDetails());
+        if (dto.businessRating() != null) business.setRating(dto.businessRating());
+
+        if (dto.businessType() != null) {
+            business.setBusinessType(businessTypeService.getOrCreateEntity(dto.businessType()));
+        }
+
+        if (dto.kosherType() != null) {
+            business.setKosherType(kosherTypeService.getOrCreateEntity(dto.kosherType()));
+        }
+
+        if (dto.foodTypes() != null) {
+            updateManyToManyRelationship(
+                    new HashSet<>(dto.foodTypes()),
+                    business.getFoodTypeVsBusinesses(),
+                    foodType -> new FoodTypeBusiness(business, foodType),
+                    foodTypeService::getOrCreateEntities,
+                    foodTypeBusinessRepository,
+                    relation -> relation.getFoodType().getName()
+            );
+        }
+
+        if (dto.foodItemTypes() != null) {
+            updateManyToManyRelationship(
+                    new HashSet<>(dto.foodItemTypes()),
+                    business.getFoodItemTypeVsBusinesses(),
+                    itemType -> new FoodItemTypeBusiness(business, itemType),
+                    foodItemTypeService::getOrCreateEntities,
+                    foodItemTypeBusinessRepository,
+                    relation -> relation.getFoodItemType().getName()
+            );
+        }
+
+        business.setUpdatedAt(OffsetDateTime.now());
+        businessRepository.save(business);
+
+        return BusinessResponse.builder()
+                .businessId(business.getId())
+                .businessName(business.getName())
+                .businessNumber(business.getBusinessNumber())
+                .createdAt(business.getUpdatedAt().toInstant()).build();
+    }
+
+    @Override
     public PageResponse<BusinessPreviewResponse> getBusinessPreviews(Pageable pageable) {
         int limit = pageable.getPageSize();
         int offset = (int) pageable.getOffset();
@@ -262,7 +318,13 @@ public class BusinessServiceImpl implements BusinessService {
         return businessRepository.getBusinessDetails(id)
                 .orElseThrow(() -> new EntityNotFoundException("Business", "id", id));
     }
-
+    @Override
+    public boolean isBusinessManagedByUser(UUID businessId, UUID userId) {
+        if (businessId == null || userId == null) {
+            return false;
+        }
+        return businessRepository.isBusinessManagedByUser(businessId, userId);
+    }
     private long countAllBusinesses() {
         return businessRepository.countByIsActiveTrue();
     }

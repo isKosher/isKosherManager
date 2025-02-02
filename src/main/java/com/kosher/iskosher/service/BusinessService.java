@@ -2,8 +2,8 @@ package com.kosher.iskosher.service;
 
 import com.kosher.iskosher.dto.request.BusinessCreateRequest;
 import com.kosher.iskosher.dto.request.BusinessFilterCriteria;
+import com.kosher.iskosher.dto.request.BusinessUpdateRequest;
 import com.kosher.iskosher.dto.response.*;
-import com.kosher.iskosher.entity.Business;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -14,13 +14,17 @@ public interface BusinessService {
 
     BusinessDetailedResponse getBusinessDetails(UUID id);
 
+    boolean isBusinessManagedByUser(UUID businessId, UUID userId);
+
     void deleteBusiness(UUID id);
 
-    BusinessCreateResponse createBusiness(UUID userId, BusinessCreateRequest createRequest);
+    BusinessResponse createBusiness(UUID userId, BusinessCreateRequest createRequest);
 
     Page<BusinessPreviewResponse> filterBusinesses(BusinessFilterCriteria criteria, Pageable pageable);
 
     List<BusinessSearchResponse> searchBusinesses(String searchTerm);
 
     PageResponse<BusinessPreviewResponse> getBusinessPreviews(Pageable pageable);
+
+    BusinessResponse updateBusiness(UUID userId, BusinessUpdateRequest dto);
 }

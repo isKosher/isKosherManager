@@ -63,4 +63,12 @@ public interface BusinessRepository extends JpaRepository<Business, UUID>, Custo
                 .collect(Collectors.toList());
     }
 
+    @Query("""
+        SELECT COUNT(ub) > 0 
+        FROM UsersBusiness ub 
+        WHERE ub.business.id = :businessId 
+        AND ub.user.id = :userId
+    """)
+    boolean isBusinessManagedByUser(@Param("businessId") UUID businessId, @Param("userId") UUID userId);
+
 }
