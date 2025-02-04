@@ -62,6 +62,8 @@ public class BusinessMapper {
     }
 
     private List<KosherCertificateDto> getCertificateDto(Business business) {
-        return List.of(KosherCertificateMapper.INSTANCE.toDTO(business.getKosherCertificate()));
+        return business.getCertificateVsBusinesses().stream()
+                .map(cb-> KosherCertificateMapper.INSTANCE.toDTO(cb.getCertificate()))
+                .collect(Collectors.toList());
     }
 }

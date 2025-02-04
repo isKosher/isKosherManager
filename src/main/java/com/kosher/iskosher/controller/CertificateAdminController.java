@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -18,8 +19,8 @@ public class CertificateAdminController {
     private final KosherCertificateService kosherCertificateService;
 
     @GetMapping("/business/{businessId}")
-    public ResponseEntity<KosherCertificateDto> getCertificate(@PathVariable UUID businessId) {
-        return ResponseEntity.ok(kosherCertificateService.getKosherCertificate(businessId));
+    public ResponseEntity<List<KosherCertificateDto>> getCertificate(@PathVariable UUID businessId) {
+        return ResponseEntity.ok(kosherCertificateService.getCertificates(businessId));
     }
 
     @PostMapping("/business/{businessId}")
