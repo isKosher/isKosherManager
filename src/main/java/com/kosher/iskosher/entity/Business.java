@@ -6,8 +6,9 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
-import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -119,10 +120,10 @@ public class Business {
     @JoinColumn(name = "kosher_type_id", nullable = false)
     private KosherType kosherType;
 
-    @NotNull
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "kosher_certificate", nullable = false)
-    private KosherCertificate kosherCertificate;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @OnDelete(action = OnDeleteAction.SET_NULL)
+    @JoinColumn(name = "location_id")
+    private Location location;
 
     @Column(name = "details", length = Integer.MAX_VALUE)
     private String details;
@@ -160,12 +161,12 @@ public class Business {
     private Set<FoodTypeBusiness> foodTypeVsBusinesses = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "business")
-    private Set<LocationsBusiness> locationsVsBusinesses = new LinkedHashSet<>();
-
-    @OneToMany(mappedBy = "business")
     private Set<SupervisorsBusiness> supervisorsVsBusinesses = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "business")
     private Set<UsersBusiness> usersVsBusinesses = new LinkedHashSet<>();
+
+    @OneToMany(mappedBy = "business")
+    private Set<CertificateBusiness> certificateVsBusinesses = new LinkedHashSet<>();
 
 }
