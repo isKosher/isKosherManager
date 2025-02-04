@@ -3,11 +3,12 @@ package com.kosher.iskosher.service;
 import com.kosher.iskosher.dto.KosherCertificateDto;
 import com.kosher.iskosher.entity.KosherCertificate;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface KosherCertificateService {
 
-    KosherCertificateDto getKosherCertificate(UUID businessId);
+    List<KosherCertificateDto> getCertificates(UUID businessId);
 
     KosherCertificate createCertificate(KosherCertificateDto kosherCertificateDto);
 

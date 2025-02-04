@@ -2,10 +2,12 @@ package com.kosher.iskosher.service.implementation;
 
 import com.kosher.iskosher.dto.KosherCertificateDto;
 import com.kosher.iskosher.entity.Business;
+import com.kosher.iskosher.entity.CertificateBusiness;
 import com.kosher.iskosher.entity.KosherCertificate;
 import com.kosher.iskosher.exception.BusinessCreationException;
 import com.kosher.iskosher.exception.ResourceNotFoundException;
 import com.kosher.iskosher.repository.BusinessRepository;
+import com.kosher.iskosher.repository.CertificateBusinessRepository;
 import com.kosher.iskosher.repository.KosherCertificateRepository;
 import com.kosher.iskosher.service.KosherCertificateService;
 import com.kosher.iskosher.types.mappers.KosherCertificateMapper;
@@ -13,8 +15,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -22,16 +25,14 @@ public class KosherCertificateServiceImpl implements KosherCertificateService {
 
     private final KosherCertificateRepository kosherCertificateRepository;
     private final BusinessRepository businessRepository;
+    private final CertificateBusinessRepository certificateBusinessRepository;
 
     //TODO replace all ResourceNotFoundException to EntityNotFoundException
-    public KosherCertificateDto getKosherCertificate(UUID businessId) {
-        KosherCertificate certificate = kosherCertificateRepository.findByBusinessId(businessId)
-                .orElseThrow(() -> new ResourceNotFoundException("Business not found with id: " + businessId));
-
-        if (certificate == null) {
-            throw new ResourceNotFoundException("No KosherCertificate associated with Business id: " + businessId);
-        }
-        return KosherCertificateMapper.INSTANCE.toDTO(certificate);
+    public List<KosherCertificateDto> getCertificates(UUID businessId) {
+        return kosherCertificateRepository.findByCertificateVsBusinessesBusinessId(businessId)
+                .stream()
+                .map(KosherCertificateMapper.INSTANCE::toDTO)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -50,18 +51,12 @@ public class KosherCertificateServiceImpl implements KosherCertificateService {
     public KosherCertificateDto createAndLinkCertificate(UUID businessId, KosherCertificateDto dto) {
         existsByCertificate(dto.certificate());
 
-        Business business = businessRepository.findById(businessId)
-                .orElseThrow(() -> new ResourceNotFoundException("Business not found with id: " + businessId));
-
-        deleteExistingCertificateIfPresent(business);
-
         KosherCertificate certificate = createCertificate(dto);
-        business.setKosherCertificate(certificate);
-        businessRepository.save(business);
+        certificate = kosherCertificateRepository.save(certificate);
+        linkCertificateToBusiness(businessId, certificate);
 
         return KosherCertificateMapper.INSTANCE.toDTO(certificate);
     }
-
 
     @Override
     public void existsByCertificate(String certificate) {
@@ -73,26 +68,18 @@ public class KosherCertificateServiceImpl implements KosherCertificateService {
     @Override
     @Transactional
     public KosherCertificateDto updateCertificate(UUID businessId, KosherCertificateDto dto) {
-        existsByCertificate(dto.certificate());
-
-        Business business = businessRepository.findById(businessId)
-                .orElseThrow(() -> new ResourceNotFoundException("Business not found with id: " + businessId));
 
         KosherCertificate certificate = kosherCertificateRepository.findByCertificate(dto.certificate())
-                .orElseGet(() -> {
-                    deleteExistingCertificateIfPresent(business);
-                    return createCertificate(dto);
-                });
+                .orElseGet(() -> KosherCertificateMapper.INSTANCE.toEntity(dto));
 
         certificate.setExpirationDate(dto.expirationDate());
-        business.setKosherCertificate(certificate);
-        businessRepository.save(business);
+        kosherCertificateRepository.save(certificate);
+        linkCertificateToBusiness(businessId, certificate);
 
-        return KosherCertificateMapper.INSTANCE.toDTO(kosherCertificateRepository.save(certificate));
+        return KosherCertificateMapper.INSTANCE.toDTO(certificate);
 
     }
 
-    //TODO: improve to other table like supervisors_businesses
     @Override
     @Transactional
     public void deleteCertificate(UUID businessId, UUID certificateId) {
@@ -102,18 +89,33 @@ public class KosherCertificateServiceImpl implements KosherCertificateService {
         KosherCertificate certificate = kosherCertificateRepository.findById(certificateId)
                 .orElseThrow(() -> new ResourceNotFoundException("KosherCertificate not found with id: " + certificateId));
 
-        if (!business.getKosherCertificate().getId().equals(certificateId)) {
-            throw new ResourceNotFoundException("The specified certificate is not associated with this business");
-        }
+        CertificateBusiness certificateBusiness = certificateBusinessRepository
+                .findByBusinessAndCertificate(business, certificate)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "No link found between supervisor and business"));
 
-        business.setKosherCertificate(null);
-        businessRepository.save(business);
-        kosherCertificateRepository.delete(certificate);
+        certificateBusinessRepository.delete(certificateBusiness);
+
+        // if the certificate has no more business associations, we could delete them
+        /*
+        if (!certificatesBusinessRepository.existsByCertificateId(certificateId)) {
+            kosherCertificateRepository.delete(certificate);
+        }*/
+
     }
 
-    private void deleteExistingCertificateIfPresent(Business business) {
-        Optional.ofNullable(business.getKosherCertificate())
-                .ifPresent(kosherCertificateRepository::delete);
+    private void linkCertificateToBusiness(UUID businessId, KosherCertificate certificate) {
+        Business business = businessRepository.findById(businessId)
+                .orElseThrow(() -> new ResourceNotFoundException("Business not found with id: " + businessId));
+
+        CertificateBusiness existingLink = certificateBusinessRepository
+                .findByBusinessAndCertificate(business, certificate)
+                .orElse(null);
+
+        if (existingLink == null) {
+            CertificateBusiness certificateBusiness = new CertificateBusiness(business, certificate);
+            certificateBusinessRepository.save(certificateBusiness);
+        }
     }
 }
 
