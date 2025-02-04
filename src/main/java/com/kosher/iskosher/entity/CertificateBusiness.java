@@ -16,13 +16,14 @@ import java.util.UUID;
 @Table(name = "certificate_businesses")
 public class CertificateBusiness {
     @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", nullable = false)
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.SET_NULL)
     @JoinColumn(name = "kosher_certificate_id")
-    private KosherCertificate kosherCertificate;
+    private KosherCertificate certificate;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.CASCADE)
@@ -31,7 +32,7 @@ public class CertificateBusiness {
 
     public CertificateBusiness(Business business, KosherCertificate certificate) {
         this.business = business;
-        this.kosherCertificate = certificate;
+        this.certificate = certificate;
     }
 
 }

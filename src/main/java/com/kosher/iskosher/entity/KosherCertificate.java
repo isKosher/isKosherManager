@@ -28,7 +28,7 @@ public class KosherCertificate {
     @Column(name = "expiration_date", nullable = false)
     private LocalDate expirationDate;
 
-    @OneToMany(mappedBy = "kosherCertificate")
-    private Set<CertificateBusiness> certificateBusinesses = new LinkedHashSet<>();
+    @OneToMany(mappedBy = "certificate")
+    private Set<CertificateBusiness> certificateVsBusinesses = new LinkedHashSet<>();
 
 }
