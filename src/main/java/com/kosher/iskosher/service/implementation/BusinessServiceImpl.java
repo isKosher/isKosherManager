@@ -49,7 +49,7 @@ public class BusinessServiceImpl implements BusinessService {
     private final LocationService locationService;
     private final PhotoService photoService;
     private final SupervisorsBusinessRepository supervisorsBusinessRepository;
-    private final LocationsBusinessRepository locationsBusinessRepository;
+    private final CertificateBusinessRepository certificateBusinessRepository;
     private final FoodTypeBusinessRepository foodTypeBusinessRepository;
     private final FoodItemTypeBusinessRepository foodItemTypeBusinessRepository;
     private final BusinessPhotosBusinessRepository businessPhotosBusinessRepository;
@@ -152,8 +152,8 @@ public class BusinessServiceImpl implements BusinessService {
             KosherCertificate certificate = kosherCertificateService.createCertificate(dto.kosherCertificate());
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new EntityNotFoundException("User", "id", userId));
-            Business business = createBusinessEntity(dto, kosherType, businessType, certificate);
-            batchCreateRelationships(business, location, user, supervisor, photos, dto.foodTypes(),
+            Business business = createBusinessEntity(dto, kosherType, businessType, location);
+            batchCreateRelationships(business, certificate, user, supervisor, photos, dto.foodTypes(),
                     dto.foodItemTypes());
             //endregion
 
@@ -179,15 +179,15 @@ public class BusinessServiceImpl implements BusinessService {
         }
     }
 
-    private void batchCreateRelationships(Business business, Location location, User user,
+    private void batchCreateRelationships(Business business, KosherCertificate certificate, User user,
                                           KosherSupervisor supervisor, List<BusinessPhoto> photos,
                                           List<String> foodTypes, List<String> foodItemTypes) {
         //region Relationship Collections
         List<UsersBusiness> usersRelationships = Collections.singletonList(
                 new UsersBusiness(business, user)
         );
-        List<LocationsBusiness> locationRelationships = Collections.singletonList(
-                new LocationsBusiness(business, location)
+        List<CertificateBusiness> certificateRelationships = Collections.singletonList(
+                new CertificateBusiness(business, certificate)
         );
         List<SupervisorsBusiness> supervisorRelationships = Collections.singletonList(
                 new SupervisorsBusiness(business, supervisor)
@@ -210,7 +210,7 @@ public class BusinessServiceImpl implements BusinessService {
 
         //region Batch Save All Relationships
         usersBusinessRepository.saveAll(usersRelationships);
-        locationsBusinessRepository.saveAll(locationRelationships);
+        certificateBusinessRepository.saveAll(certificateRelationships);
         supervisorsBusinessRepository.saveAll(supervisorRelationships);
         businessPhotosBusinessRepository.saveAll(photoRelationships);
         foodTypeBusinessRepository.saveAll(foodTypeRelationships);
@@ -219,14 +219,14 @@ public class BusinessServiceImpl implements BusinessService {
     }
 
     private Business createBusinessEntity(BusinessCreateRequest dto, KosherType kosherType,
-                                          BusinessType businessType, KosherCertificate certificate) {
+                                          BusinessType businessType, Location location) {
         Business business = new Business();
         business.setName(dto.businessName());
         business.setDetails(dto.businessDetails());
         business.setRating(dto.businessRating().shortValue());
         business.setKosherType(kosherType);
         business.setBusinessType(businessType);
-        business.setKosherCertificate(certificate);
+        business.setLocation(location);
         business.setCreatedAt(OffsetDateTime.now());
         business.setUpdatedAt(OffsetDateTime.now());
         business.setBusinessNumber(dto.businessPhone());

@@ -46,13 +46,10 @@ public class BusinessMapper {
     }
 
     private LocationInfo getLocationInfo(Business business) {
-        return business.getLocationsVsBusinesses().stream()
-                .findFirst()
-                .map(lb -> new LocationInfo(
-                        lb.getLocation().getAddress().getName(),
-                        lb.getLocation().getStreetNumber(),
-                        lb.getLocation().getCity().getName()))
-                .orElse(null);
+        return new LocationInfo(
+                business.getLocation().getAddress().getName(),
+                business.getLocation().getStreetNumber(),
+                business.getLocation().getCity().getName());
     }
 
     private List<KosherSupervisorDto> getSupervisorsDto(Business business) {
