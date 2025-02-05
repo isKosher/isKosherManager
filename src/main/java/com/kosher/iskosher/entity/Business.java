@@ -115,11 +115,6 @@ public class Business {
     @Column(name = "name", nullable = false, length = Integer.MAX_VALUE)
     private String name;
 
-    @NotNull
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "kosher_type_id", nullable = false)
-    private KosherType kosherType;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.SET_NULL)
     @JoinColumn(name = "location_id")
@@ -168,5 +163,8 @@ public class Business {
 
     @OneToMany(mappedBy = "business")
     private Set<CertificateBusiness> certificateVsBusinesses = new LinkedHashSet<>();
+
+    @OneToMany(mappedBy = "business")
+    private Set<KosherTypeBusiness> kosherTypeVsBusinesses = new LinkedHashSet<>();
 
 }
