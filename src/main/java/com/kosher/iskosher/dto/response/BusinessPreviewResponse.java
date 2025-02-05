@@ -1,6 +1,7 @@
 package com.kosher.iskosher.dto.response;
 
 import com.kosher.iskosher.dto.BusinessPhotoDto;
+import com.kosher.iskosher.dto.KosherTypeDto;
 import com.kosher.iskosher.types.LocationInfo;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -56,7 +57,9 @@ public class BusinessPreviewResponse {
         return parseJson(foodItemTypes, String.class);
     }
 
-
+    public List<KosherTypeDto> getKosherType(){
+        return parseJson(kosherType, KosherTypeDto.class);
+    }
     public List<BusinessPhotoDto> getBusinessPhotos() {
         return parseJson(businessPhotos, BusinessPhotoDto.class);
     }
