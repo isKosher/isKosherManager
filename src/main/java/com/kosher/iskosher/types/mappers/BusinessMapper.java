@@ -22,7 +22,7 @@ public class BusinessMapper {
                 .businessDetails(business.getDetails())
                 .businessRating(business.getRating())
                 .businessNumber(business.getBusinessNumber())
-                .kosherType(getKosherTypeDto(business))
+                .kosherTypes(getKosherTypeDto(business))
                 .businessType(business.getBusinessType().getName())
                 .location(getLocationInfo(business))
                 .supervisors(getSupervisorsDto(business))

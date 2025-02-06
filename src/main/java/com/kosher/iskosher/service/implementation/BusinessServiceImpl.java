@@ -151,7 +151,7 @@ public class BusinessServiceImpl implements BusinessService {
                     .orElseThrow(() -> new EntityNotFoundException("User", "id", userId));
             Business business = createBusinessEntity(dto, businessType, location);
             batchCreateRelationships(business, certificate, user, supervisor, photos, dto.foodTypes(),
-                    dto.foodItemTypes(), dto.kosherTypeName());
+                    dto.foodItemTypes(), dto.kosherTypes());
             //endregion
 
             log.info("Successfully created business: {} with ID: {}", business.getName(), business.getId());
@@ -258,9 +258,9 @@ public class BusinessServiceImpl implements BusinessService {
             business.setBusinessType(businessTypeService.getOrCreateEntity(dto.businessType()));
         }
 
-        if (dto.kosherType() != null) {
+        if (dto.kosherTypes() != null) {
             updateManyToManyRelationship(
-                    new HashSet<>(dto.kosherType()),
+                    new HashSet<>(dto.kosherTypes()),
                     business.getKosherTypeVsBusinesses(),
                     itemType -> new KosherTypeBusiness(business, itemType),
                     kosherTypeService::getOrCreateEntities,

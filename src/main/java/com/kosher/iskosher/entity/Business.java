@@ -33,7 +33,7 @@ import java.util.UUID;
                         @ColumnResult(name = "longitude", type = Double.class),
                         @ColumnResult(name = "latitude", type = Double.class),
                         @ColumnResult(name = "business_photos", type = String.class),
-                        @ColumnResult(name = "kosher_type", type = String.class),
+                        @ColumnResult(name = "kosher_types", type = String.class),
                         @ColumnResult(name = "business_type", type = String.class),
                         @ColumnResult(name = "business_details", type = String.class),
                         @ColumnResult(name = "location_details", type = String.class),
@@ -57,7 +57,7 @@ import java.util.UUID;
                     b.longitude,
                     b.latitude,
                     b.business_photos,
-                    b.kosher_type,
+                    b.kosher_types,
                     b.business_type,
                     b.business_details,
                     b.location_details,
@@ -81,7 +81,7 @@ import java.util.UUID;
                         @ColumnResult(name = "street_number", type = Integer.class),
                         @ColumnResult(name = "city", type = String.class),
                         @ColumnResult(name = "business_photos", type = String.class),
-                        @ColumnResult(name = "kosher_type", type = String.class),
+                        @ColumnResult(name = "kosher_types", type = String.class),
                         @ColumnResult(name = "business_type", type = String.class)
                 }
         )
@@ -98,7 +98,7 @@ import java.util.UUID;
                         result.street_number,
                         result.city,
                         result.business_photos,
-                        result.kosher_type,
+                        result.kosher_types,
                         result.business_type
                      FROM get_all_businesses(:limitParam, :offsetParam) AS result
                 """,
