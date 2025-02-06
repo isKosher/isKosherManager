@@ -27,4 +27,8 @@ public class KosherTypeBusiness {
     @JoinColumn(name = "business_id")
     private Business business;
 
+    public KosherTypeBusiness(Business business, KosherType kosherType) {
+        this.business = business;
+        this.kosherType = kosherType;
+    }
 }
