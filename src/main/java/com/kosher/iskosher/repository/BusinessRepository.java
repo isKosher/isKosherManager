@@ -27,7 +27,8 @@ public interface BusinessRepository extends JpaRepository<Business, UUID>, Custo
 
     @Query("""
             SELECT DISTINCT b FROM Business b
-            LEFT JOIN FETCH b.kosherType kt
+            LEFT JOIN FETCH b.kosherTypeVsBusinesses ktb
+            LEFT JOIN FETCH ktb.kosherType kt
             LEFT JOIN FETCH b.businessType bt
             LEFT JOIN FETCH b.location l
             LEFT JOIN FETCH l.address a

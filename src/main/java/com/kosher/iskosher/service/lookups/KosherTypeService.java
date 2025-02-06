@@ -22,7 +22,7 @@ public class KosherTypeService extends AbstractLookupService<KosherType, KosherT
 
     @Override
     protected KosherTypeDto mapToDto(KosherType entity) {
-        return new KosherTypeDto(entity.getId(), entity.getName());
+        return new KosherTypeDto(entity.getId(), entity.getName(), entity.getKosherIconUrl());
     }
 
 }

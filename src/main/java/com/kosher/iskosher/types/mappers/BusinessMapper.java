@@ -3,6 +3,7 @@ package com.kosher.iskosher.types.mappers;
 import com.kosher.iskosher.dto.BusinessPhotoDto;
 import com.kosher.iskosher.dto.KosherCertificateDto;
 import com.kosher.iskosher.dto.KosherSupervisorDto;
+import com.kosher.iskosher.dto.KosherTypeDto;
 import com.kosher.iskosher.dto.response.UserOwnedBusinessResponse;
 import com.kosher.iskosher.entity.Business;
 import com.kosher.iskosher.types.LocationInfo;
@@ -21,7 +22,7 @@ public class BusinessMapper {
                 .businessDetails(business.getDetails())
                 .businessRating(business.getRating())
                 .businessNumber(business.getBusinessNumber())
-                .kosherType(business.getKosherType().getName())
+                .kosherType(getKosherTypeDto(business))
                 .businessType(business.getBusinessType().getName())
                 .location(getLocationInfo(business))
                 .supervisors(getSupervisorsDto(business))
@@ -58,9 +59,15 @@ public class BusinessMapper {
                 .collect(Collectors.toList());
     }
 
+    private List<KosherTypeDto> getKosherTypeDto(Business business) {
+        return business.getKosherTypeVsBusinesses().stream()
+                .map(ktb -> new KosherTypeDto(ktb.getKosherType().getId(), ktb.getKosherType().getName(),
+                        ktb.getKosherType().getKosherIconUrl())).collect(Collectors.toList());
+    }
+
     private List<KosherCertificateDto> getCertificateDto(Business business) {
         return business.getCertificateVsBusinesses().stream()
-                .map(cb-> KosherCertificateMapper.INSTANCE.toDTO(cb.getCertificate()))
+                .map(cb -> KosherCertificateMapper.INSTANCE.toDTO(cb.getCertificate()))
                 .collect(Collectors.toList());
     }
 }

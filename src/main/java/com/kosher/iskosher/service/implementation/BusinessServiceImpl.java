@@ -34,9 +34,9 @@ import static com.kosher.iskosher.common.utils.ManyToManyUpdateUtil.updateManyTo
 @RequiredArgsConstructor
 public class BusinessServiceImpl implements BusinessService {
 
-    private final UserRepository userRepository;
-
     //region Repository Dependencies
+    private final KosherTypeBusinessRepository kosherTypeBusinessRepository;
+    private final UserRepository userRepository;
     private final BusinessRepository businessRepository;
     private final CityService cityService;
     private final AddressService addressService;
@@ -135,16 +135,13 @@ public class BusinessServiceImpl implements BusinessService {
                     CompletableFuture.supplyAsync(() -> addressCache.getUnchecked(dto.location().address()));
             CompletableFuture<BusinessType> businessTypeFuture =
                     CompletableFuture.supplyAsync(() -> businessTypeCache.getUnchecked(dto.businessTypeName()));
-            CompletableFuture<KosherType> kosherTypeFuture =
-                    CompletableFuture.supplyAsync(() -> kosherTypeCache.getUnchecked(dto.kosherTypeName()));
             //endregion
 
             //region Entity Creation
             City city = cityFuture.get();
             Address address = addressFuture.get();
             BusinessType businessType = businessTypeFuture.get();
-            KosherType kosherType = kosherTypeFuture.get();
-            //TODO add business type to list food item type
+
             List<BusinessPhoto> photos = photoService.createBusinessPhotos(dto.businessPhotos(),
                     dto.foodItemTypes().get(new Random().nextInt(dto.foodItemTypes().size())));
             Location location = locationService.createLocation(dto.location(), city, address);
@@ -152,9 +149,9 @@ public class BusinessServiceImpl implements BusinessService {
             KosherCertificate certificate = kosherCertificateService.createCertificate(dto.kosherCertificate());
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new EntityNotFoundException("User", "id", userId));
-            Business business = createBusinessEntity(dto, kosherType, businessType, location);
+            Business business = createBusinessEntity(dto, businessType, location);
             batchCreateRelationships(business, certificate, user, supervisor, photos, dto.foodTypes(),
-                    dto.foodItemTypes());
+                    dto.foodItemTypes(), dto.kosherTypeName());
             //endregion
 
             log.info("Successfully created business: {} with ID: {}", business.getName(), business.getId());
@@ -181,7 +178,8 @@ public class BusinessServiceImpl implements BusinessService {
 
     private void batchCreateRelationships(Business business, KosherCertificate certificate, User user,
                                           KosherSupervisor supervisor, List<BusinessPhoto> photos,
-                                          List<String> foodTypes, List<String> foodItemTypes) {
+                                          List<String> foodTypes, List<String> foodItemTypes,
+                                          List<String> kosherTypes) {
         //region Relationship Collections
         List<UsersBusiness> usersRelationships = Collections.singletonList(
                 new UsersBusiness(business, user)
@@ -206,10 +204,16 @@ public class BusinessServiceImpl implements BusinessService {
                 .map(foodItemTypeCache::getUnchecked)
                 .map(foodItemType -> new FoodItemTypeBusiness(business, foodItemType))
                 .collect(Collectors.toList());
+        // TODO: 2/6/2025  Add icon url to kosher types (like location...)
+        List<KosherTypeBusiness> kosherTypeRelationships = kosherTypes.stream()
+                .map(kosherTypeCache::getUnchecked)
+                .map(kosherType -> new KosherTypeBusiness(business, kosherType))
+                .collect(Collectors.toList());
         //endregion
 
         //region Batch Save All Relationships
         usersBusinessRepository.saveAll(usersRelationships);
+        kosherTypeBusinessRepository.saveAll(kosherTypeRelationships);
         certificateBusinessRepository.saveAll(certificateRelationships);
         supervisorsBusinessRepository.saveAll(supervisorRelationships);
         businessPhotosBusinessRepository.saveAll(photoRelationships);
@@ -218,13 +222,11 @@ public class BusinessServiceImpl implements BusinessService {
         //endregion
     }
 
-    private Business createBusinessEntity(BusinessCreateRequest dto, KosherType kosherType,
-                                          BusinessType businessType, Location location) {
+    private Business createBusinessEntity(BusinessCreateRequest dto, BusinessType businessType, Location location) {
         Business business = new Business();
         business.setName(dto.businessName());
         business.setDetails(dto.businessDetails());
         business.setRating(dto.businessRating().shortValue());
-        business.setKosherType(kosherType);
         business.setBusinessType(businessType);
         business.setLocation(location);
         business.setCreatedAt(OffsetDateTime.now());
@@ -257,7 +259,14 @@ public class BusinessServiceImpl implements BusinessService {
         }
 
         if (dto.kosherType() != null) {
-            business.setKosherType(kosherTypeService.getOrCreateEntity(dto.kosherType()));
+            updateManyToManyRelationship(
+                    new HashSet<>(dto.kosherType()),
+                    business.getKosherTypeVsBusinesses(),
+                    itemType -> new KosherTypeBusiness(business, itemType),
+                    kosherTypeService::getOrCreateEntities,
+                    kosherTypeBusinessRepository,
+                    relation -> relation.getKosherType().getName()
+            );
         }
 
         if (dto.foodTypes() != null) {
@@ -318,6 +327,7 @@ public class BusinessServiceImpl implements BusinessService {
         return businessRepository.getBusinessDetails(id)
                 .orElseThrow(() -> new EntityNotFoundException("Business", "id", id));
     }
+
     @Override
     public boolean isBusinessManagedByUser(UUID businessId, UUID userId) {
         if (businessId == null || userId == null) {
@@ -325,6 +335,7 @@ public class BusinessServiceImpl implements BusinessService {
         }
         return businessRepository.isBusinessManagedByUser(businessId, userId);
     }
+
     private long countAllBusinesses() {
         return businessRepository.countByIsActiveTrue();
     }
