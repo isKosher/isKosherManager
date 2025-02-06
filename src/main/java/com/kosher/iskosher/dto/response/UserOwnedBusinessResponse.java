@@ -23,7 +23,7 @@ public class UserOwnedBusinessResponse {
     private String businessDetails;
     private Short businessRating;
     private String businessNumber;
-    private List<KosherTypeDto> kosherType;
+    private List<KosherTypeDto> kosherTypes;
     private String businessType;
     private LocationInfo location;
     private List<KosherSupervisorDto> supervisors;

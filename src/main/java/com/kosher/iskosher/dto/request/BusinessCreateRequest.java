@@ -23,7 +23,7 @@ public record BusinessCreateRequest(
         Short businessRating,
         @NotNull(message = "LocationInfo is required")
         LocationDto location,
-        List<String> kosherTypeName,
+        List<String> kosherTypes,
         String businessTypeName,
         @NotNull(message = "Food types are required")
         List<String> foodTypes,

@@ -12,7 +12,7 @@ public record BusinessUpdateRequest(
         String businessPhone,
         String businessDetails,
         Short businessRating,
-        List<String> kosherType,
+        List<String> kosherTypes,
         String businessType,
         List<String> foodTypes,
         List<String> foodItemTypes
