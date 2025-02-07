@@ -5,6 +5,7 @@ import com.kosher.iskosher.entity.Business;
 import com.kosher.iskosher.entity.CertificateBusiness;
 import com.kosher.iskosher.entity.KosherCertificate;
 import com.kosher.iskosher.exception.BusinessCreationException;
+import com.kosher.iskosher.exception.EntityNotFoundException;
 import com.kosher.iskosher.exception.ResourceNotFoundException;
 import com.kosher.iskosher.repository.BusinessRepository;
 import com.kosher.iskosher.repository.CertificateBusinessRepository;
@@ -27,7 +28,6 @@ public class KosherCertificateServiceImpl implements KosherCertificateService {
     private final BusinessRepository businessRepository;
     private final CertificateBusinessRepository certificateBusinessRepository;
 
-    //TODO replace all ResourceNotFoundException to EntityNotFoundException
     public List<KosherCertificateDto> getCertificates(UUID businessId) {
         return kosherCertificateRepository.findByCertificateVsBusinessesBusinessId(businessId)
                 .stream()
@@ -84,10 +84,10 @@ public class KosherCertificateServiceImpl implements KosherCertificateService {
     @Transactional
     public void deleteCertificate(UUID businessId, UUID certificateId) {
         Business business = businessRepository.findById(businessId)
-                .orElseThrow(() -> new ResourceNotFoundException("Business not found with id: " + businessId));
+                .orElseThrow(() -> new EntityNotFoundException("Business", "id", businessId));
 
         KosherCertificate certificate = kosherCertificateRepository.findById(certificateId)
-                .orElseThrow(() -> new ResourceNotFoundException("KosherCertificate not found with id: " + certificateId));
+                .orElseThrow(() -> new EntityNotFoundException("KosherCertificate", "id", certificateId));
 
         CertificateBusiness certificateBusiness = certificateBusinessRepository
                 .findByBusinessAndCertificate(business, certificate)
@@ -106,7 +106,7 @@ public class KosherCertificateServiceImpl implements KosherCertificateService {
 
     private void linkCertificateToBusiness(UUID businessId, KosherCertificate certificate) {
         Business business = businessRepository.findById(businessId)
-                .orElseThrow(() -> new ResourceNotFoundException("Business not found with id: " + businessId));
+                .orElseThrow(() -> new EntityNotFoundException("Business", "id", businessId));
 
         CertificateBusiness existingLink = certificateBusinessRepository
                 .findByBusinessAndCertificate(business, certificate)

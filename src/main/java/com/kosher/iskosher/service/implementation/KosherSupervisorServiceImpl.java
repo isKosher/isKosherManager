@@ -4,6 +4,7 @@ import com.kosher.iskosher.dto.KosherSupervisorDto;
 import com.kosher.iskosher.entity.Business;
 import com.kosher.iskosher.entity.KosherSupervisor;
 import com.kosher.iskosher.entity.SupervisorsBusiness;
+import com.kosher.iskosher.exception.EntityNotFoundException;
 import com.kosher.iskosher.exception.ResourceNotFoundException;
 import com.kosher.iskosher.repository.BusinessRepository;
 import com.kosher.iskosher.repository.KosherSupervisorRepository;
@@ -46,7 +47,7 @@ public class KosherSupervisorServiceImpl implements KosherSupervisorService {
     public KosherSupervisorDto createAndLinkSupervisor(UUID businessId, KosherSupervisorDto dto) {
 
         Business business = businessRepository.findById(businessId)
-                .orElseThrow(() -> new ResourceNotFoundException("Business not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Business", "id", businessId));
 
         KosherSupervisor supervisor = kosherSupervisorRepository.findByContactInfo(dto.contactInfo())
                 .orElseGet(() -> kosherSupervisorRepository.save(KosherSupervisorMapper.INSTANCE.toEntity(dto)));
@@ -88,10 +89,10 @@ public class KosherSupervisorServiceImpl implements KosherSupervisorService {
     public void deleteSupervisorFromBusiness(UUID businessId, UUID supervisorId) {
 
         Business business = businessRepository.findById(businessId)
-                .orElseThrow(() -> new ResourceNotFoundException("Business not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Business", "id", businessId));
 
         KosherSupervisor supervisor = kosherSupervisorRepository.findById(supervisorId)
-                .orElseThrow(() -> new ResourceNotFoundException("Supervisor not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Supervisor", "id", supervisorId));
 
         SupervisorsBusiness supervisorsBusiness = supervisorsBusinessRepository
                 .findByBusinessAndSupervisor(business, supervisor)
