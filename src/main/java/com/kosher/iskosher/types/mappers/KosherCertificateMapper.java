@@ -13,6 +13,6 @@ public interface KosherCertificateMapper {
     KosherCertificateDto toDTO(KosherCertificate entity);
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "certificateBusinesses", ignore = true)
+    @Mapping(target = "certificateVsBusinesses", ignore = true)
     KosherCertificate toEntity(KosherCertificateDto dto);
 }

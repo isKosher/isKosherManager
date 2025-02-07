@@ -57,7 +57,7 @@ public class BusinessPreviewResponse {
         return parseJson(foodItemTypes, String.class);
     }
 
-    public List<KosherTypeDto> getKosherType(){
+    public List<KosherTypeDto> getKosherTypes(){
         return parseJson(kosherTypes, KosherTypeDto.class);
     }
     public List<BusinessPhotoDto> getBusinessPhotos() {

@@ -1,5 +1,6 @@
 package com.kosher.iskosher.controller;
 
+import com.kosher.iskosher.configuration.ManagedBusiness;
 import com.kosher.iskosher.dto.KosherSupervisorDto;
 import com.kosher.iskosher.service.KosherSupervisorService;
 import jakarta.validation.Valid;
@@ -19,13 +20,13 @@ public class SupervisorAdminController {
     private final KosherSupervisorService kosherSupervisorService;
 
     @GetMapping("/business/{businessId}")
-    public ResponseEntity<List<KosherSupervisorDto>> getSupervisors(@PathVariable UUID businessId) {
+    public ResponseEntity<List<KosherSupervisorDto>> getSupervisors(@PathVariable @ManagedBusiness UUID businessId) {
         return ResponseEntity.ok(kosherSupervisorService.getSupervisors(businessId));
     }
 
     @PostMapping("/business/{businessId}/add")
     public ResponseEntity<KosherSupervisorDto> createAndLinkSupervisor(
-            @PathVariable UUID businessId,
+            @PathVariable @ManagedBusiness UUID businessId,
             @Valid @RequestBody KosherSupervisorDto supervisorDto) {
 
         KosherSupervisorDto createdSupervisor = kosherSupervisorService.createAndLinkSupervisor(businessId,
@@ -35,7 +36,7 @@ public class SupervisorAdminController {
 
     @PutMapping("/business/{businessId}")
     public ResponseEntity<KosherSupervisorDto> updateSupervisor(
-            @PathVariable UUID businessId,
+            @PathVariable @ManagedBusiness UUID businessId,
             @Valid @RequestBody KosherSupervisorDto supervisorDto) {
         return ResponseEntity.ok(
                 kosherSupervisorService.updateSupervisor(businessId, supervisorDto));
@@ -43,7 +44,7 @@ public class SupervisorAdminController {
 
     @DeleteMapping("/{businessId}/{supervisorId}")
     public ResponseEntity<Void> removeSupervisor(
-            @PathVariable UUID businessId,
+            @PathVariable @ManagedBusiness UUID businessId,
             @PathVariable UUID supervisorId) {
         kosherSupervisorService.deleteSupervisorFromBusiness(businessId, supervisorId);
         return ResponseEntity.noContent().build();

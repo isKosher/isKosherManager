@@ -1,6 +1,7 @@
 package com.kosher.iskosher.controller;
 
 import com.kosher.iskosher.configuration.CurrentUser;
+import com.kosher.iskosher.configuration.ManagedBusiness;
 import com.kosher.iskosher.dto.request.BusinessCreateRequest;
 import com.kosher.iskosher.dto.request.BusinessUpdateRequest;
 import com.kosher.iskosher.dto.response.BusinessResponse;
@@ -52,7 +53,7 @@ public class BusinessAdminController {
     //TODO: finish isActive to false and valid business by userId...
     @DeleteMapping("delete-business/{id}")
     public ResponseEntity<Void> deleteBusiness(
-            @PathVariable @NotNull UUID id) {
+            @PathVariable @NotNull @ManagedBusiness UUID id) {
         businessService.deleteBusiness(id);
         return ResponseEntity.noContent().build();
     }
