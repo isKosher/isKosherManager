@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.kosher.iskosher.common.interfaces.NamedEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -51,10 +50,9 @@ public class User implements NamedEntity {
     @JsonManagedReference
     private Set<UsersBusiness> usersBusinesses = new LinkedHashSet<>();
 
-    public User(String googleId, String name, String email, Boolean isManager) {
+    public User(String googleId, String name, String email) {
         this.googleId = googleId;
         this.name = name;
         this.email = email;
-        this.isManager = isManager;
     }
 }

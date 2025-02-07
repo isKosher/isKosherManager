@@ -14,8 +14,6 @@ public interface BusinessService {
 
     BusinessDetailedResponse getBusinessDetails(UUID id);
 
-    boolean isBusinessManagedByUser(UUID businessId, UUID userId);
-
     void deleteBusiness(UUID id);
 
     BusinessResponse createBusiness(UUID userId, BusinessCreateRequest createRequest);

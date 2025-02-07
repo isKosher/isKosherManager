@@ -11,7 +11,6 @@ import com.kosher.iskosher.entity.*;
 import com.kosher.iskosher.exception.BusinessCreationException;
 import com.kosher.iskosher.exception.EntityNotFoundException;
 import com.kosher.iskosher.repository.*;
-import com.kosher.iskosher.repository.lookups.UserRepository;
 import com.kosher.iskosher.service.*;
 import com.kosher.iskosher.service.lookups.*;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +35,7 @@ public class BusinessServiceImpl implements BusinessService {
 
     //region Repository Dependencies
     private final KosherTypeBusinessRepository kosherTypeBusinessRepository;
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final BusinessRepository businessRepository;
     private final CityService cityService;
     private final AddressService addressService;
@@ -147,8 +146,7 @@ public class BusinessServiceImpl implements BusinessService {
             Location location = locationService.createLocation(dto.location(), city, address);
             KosherSupervisor supervisor = kosherSupervisorService.createSupervisorOnly(dto.supervisor());
             KosherCertificate certificate = kosherCertificateService.createCertificate(dto.kosherCertificate());
-            User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new EntityNotFoundException("User", "id", userId));
+            User user = userService.getUserByIdAndSetManager(userId);
             Business business = createBusinessEntity(dto, businessType, location);
             batchCreateRelationships(business, certificate, user, supervisor, photos, dto.foodTypes(),
                     dto.foodItemTypes(), dto.kosherTypes());
@@ -326,14 +324,6 @@ public class BusinessServiceImpl implements BusinessService {
     public BusinessDetailedResponse getBusinessDetails(UUID id) {
         return businessRepository.getBusinessDetails(id)
                 .orElseThrow(() -> new EntityNotFoundException("Business", "id", id));
-    }
-
-    @Override
-    public boolean isBusinessManagedByUser(UUID businessId, UUID userId) {
-        if (businessId == null || userId == null) {
-            return false;
-        }
-        return businessRepository.isBusinessManagedByUser(businessId, userId);
     }
 
     private long countAllBusinesses() {

@@ -7,7 +7,6 @@ import com.kosher.iskosher.entity.User;
 import com.kosher.iskosher.service.OAuth2Service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -24,8 +23,7 @@ public class GoogleAuthService implements OAuth2Service<FirebaseToken> {
     public <R> R mapToApplicationUser(FirebaseToken userDetails) {
         User user = new User(userDetails.getUid(),
                 userDetails.getName(),
-                userDetails.getEmail(),
-                false);
+                userDetails.getEmail());
         return (R) user;
     }
 
