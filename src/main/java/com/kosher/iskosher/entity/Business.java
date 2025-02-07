@@ -6,8 +6,9 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
-import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -32,7 +33,7 @@ import java.util.UUID;
                         @ColumnResult(name = "longitude", type = Double.class),
                         @ColumnResult(name = "latitude", type = Double.class),
                         @ColumnResult(name = "business_photos", type = String.class),
-                        @ColumnResult(name = "kosher_type", type = String.class),
+                        @ColumnResult(name = "kosher_types", type = String.class),
                         @ColumnResult(name = "business_type", type = String.class),
                         @ColumnResult(name = "business_details", type = String.class),
                         @ColumnResult(name = "location_details", type = String.class),
@@ -56,7 +57,7 @@ import java.util.UUID;
                     b.longitude,
                     b.latitude,
                     b.business_photos,
-                    b.kosher_type,
+                    b.kosher_types,
                     b.business_type,
                     b.business_details,
                     b.location_details,
@@ -80,7 +81,7 @@ import java.util.UUID;
                         @ColumnResult(name = "street_number", type = Integer.class),
                         @ColumnResult(name = "city", type = String.class),
                         @ColumnResult(name = "business_photos", type = String.class),
-                        @ColumnResult(name = "kosher_type", type = String.class),
+                        @ColumnResult(name = "kosher_types", type = String.class),
                         @ColumnResult(name = "business_type", type = String.class)
                 }
         )
@@ -97,7 +98,7 @@ import java.util.UUID;
                         result.street_number,
                         result.city,
                         result.business_photos,
-                        result.kosher_type,
+                        result.kosher_types,
                         result.business_type
                      FROM get_all_businesses(:limitParam, :offsetParam) AS result
                 """,
@@ -114,15 +115,10 @@ public class Business {
     @Column(name = "name", nullable = false, length = Integer.MAX_VALUE)
     private String name;
 
-    @NotNull
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "kosher_type_id", nullable = false)
-    private KosherType kosherType;
-
-    @NotNull
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "kosher_certificate", nullable = false)
-    private KosherCertificate kosherCertificate;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @OnDelete(action = OnDeleteAction.SET_NULL)
+    @JoinColumn(name = "location_id")
+    private Location location;
 
     @Column(name = "details", length = Integer.MAX_VALUE)
     private String details;
@@ -160,12 +156,15 @@ public class Business {
     private Set<FoodTypeBusiness> foodTypeVsBusinesses = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "business")
-    private Set<LocationsBusiness> locationsVsBusinesses = new LinkedHashSet<>();
-
-    @OneToMany(mappedBy = "business")
     private Set<SupervisorsBusiness> supervisorsVsBusinesses = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "business")
     private Set<UsersBusiness> usersVsBusinesses = new LinkedHashSet<>();
+
+    @OneToMany(mappedBy = "business")
+    private Set<CertificateBusiness> certificateVsBusinesses = new LinkedHashSet<>();
+
+    @OneToMany(mappedBy = "business")
+    private Set<KosherTypeBusiness> kosherTypeVsBusinesses = new LinkedHashSet<>();
 
 }

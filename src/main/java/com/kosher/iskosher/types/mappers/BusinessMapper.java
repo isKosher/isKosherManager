@@ -1,8 +1,11 @@
 package com.kosher.iskosher.types.mappers;
 
-import com.kosher.iskosher.dto.*;
+import com.kosher.iskosher.dto.BusinessPhotoDto;
+import com.kosher.iskosher.dto.KosherCertificateDto;
+import com.kosher.iskosher.dto.KosherSupervisorDto;
+import com.kosher.iskosher.dto.KosherTypeDto;
 import com.kosher.iskosher.dto.response.UserOwnedBusinessResponse;
-import com.kosher.iskosher.entity.*;
+import com.kosher.iskosher.entity.Business;
 import com.kosher.iskosher.types.LocationInfo;
 import org.springframework.stereotype.Component;
 
@@ -12,27 +15,6 @@ import java.util.stream.Collectors;
 @Component
 public class BusinessMapper {
 
-    public UserDto convertToUserDto(User user) {
-        List<BusinessDto> businessDtos = user.getUsersBusinesses().stream()
-                .map(usersBusiness -> {
-                    Business business = usersBusiness.getBusiness();
-                    return new BusinessDto(
-                            business.getId(),
-                            business.getName()
-                    );
-                })
-                .collect(Collectors.toList());
-
-        return new UserDto(
-                user.getId(),
-                user.getGoogleId(),
-                user.getName(),
-                user.getEmail(),
-                user.getIsManager(),
-                businessDtos
-        );
-    }
-
     public UserOwnedBusinessResponse mapToUserOwnedBusinessResponse(Business business) {
         return UserOwnedBusinessResponse.builder()
                 .businessId(business.getId())
@@ -40,7 +22,7 @@ public class BusinessMapper {
                 .businessDetails(business.getDetails())
                 .businessRating(business.getRating())
                 .businessNumber(business.getBusinessNumber())
-                .kosherType(business.getKosherType().getName())
+                .kosherTypes(getKosherTypeDto(business))
                 .businessType(business.getBusinessType().getName())
                 .location(getLocationInfo(business))
                 .supervisors(getSupervisorsDto(business))
@@ -58,32 +40,34 @@ public class BusinessMapper {
     private List<BusinessPhotoDto> getBusinessPhotosDto(Business business) {
         return business.getBusinessPhotosVsBusinesses().stream()
                 .map(pb -> new BusinessPhotoDto(
+                        pb.getId(),
                         pb.getBusinessPhotos().getUrl(),
                         pb.getBusinessPhotos().getPhotoInfo()))
                 .collect(Collectors.toList());
     }
 
     private LocationInfo getLocationInfo(Business business) {
-        return business.getLocationsVsBusinesses().stream()
-                .findFirst()
-                .map(lb -> new LocationInfo(
-                        lb.getLocation().getAddress().getName(),
-                        lb.getLocation().getStreetNumber(),
-                        lb.getLocation().getCity().getName()))
-                .orElse(null);
+        return new LocationInfo(
+                business.getLocation().getAddress().getName(),
+                business.getLocation().getStreetNumber(),
+                business.getLocation().getCity().getName());
     }
 
     private List<KosherSupervisorDto> getSupervisorsDto(Business business) {
         return business.getSupervisorsVsBusinesses().stream()
-                .map(sb -> new KosherSupervisorDto(
-                        sb.getSupervisor().getName(),
-                        sb.getSupervisor().getContactInfo(),
-                        sb.getSupervisor().getAuthority()))
+                .map(sb -> KosherSupervisorMapper.INSTANCE.toDTO(sb.getSupervisor()))
                 .collect(Collectors.toList());
     }
 
+    private List<KosherTypeDto> getKosherTypeDto(Business business) {
+        return business.getKosherTypeVsBusinesses().stream()
+                .map(ktb -> new KosherTypeDto(ktb.getKosherType().getId(), ktb.getKosherType().getName(),
+                        ktb.getKosherType().getKosherIconUrl())).collect(Collectors.toList());
+    }
+
     private List<KosherCertificateDto> getCertificateDto(Business business) {
-        return List.of(new KosherCertificateDto(business.getKosherCertificate().getCertificate(),
-                business.getKosherCertificate().getExpirationDate()));
+        return business.getCertificateVsBusinesses().stream()
+                .map(cb -> KosherCertificateMapper.INSTANCE.toDTO(cb.getCertificate()))
+                .collect(Collectors.toList());
     }
 }

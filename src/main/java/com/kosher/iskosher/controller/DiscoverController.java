@@ -27,9 +27,8 @@ import java.util.UUID;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:3000")
-@RequestMapping(path = "/api/v1/businesses")
-public class BusinessController {
+@RequestMapping(path = "/api/v1/discover")
+public class DiscoverController {
 
     private final BusinessService businessService;
 

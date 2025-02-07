@@ -3,13 +3,13 @@ package com.kosher.iskosher.dto.response;
 import com.kosher.iskosher.dto.BusinessPhotoDto;
 import com.kosher.iskosher.dto.KosherCertificateDto;
 import com.kosher.iskosher.dto.KosherSupervisorDto;
+import com.kosher.iskosher.dto.KosherTypeDto;
 import com.kosher.iskosher.types.LocationInfo;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -23,7 +23,7 @@ public class UserOwnedBusinessResponse {
     private String businessDetails;
     private Short businessRating;
     private String businessNumber;
-    private String kosherType;
+    private List<KosherTypeDto> kosherTypes;
     private String businessType;
     private LocationInfo location;
     private List<KosherSupervisorDto> supervisors;

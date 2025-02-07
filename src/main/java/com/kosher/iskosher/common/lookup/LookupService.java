@@ -11,5 +11,7 @@ public interface LookupService<T extends NamedEntity, D extends NamedEntityDto> 
     D findByName(String name);
     D getOrCreateDto(String name);
     T getOrCreateEntity(String name);
+    List<T> getOrCreateEntities(List<String> names);
+    T getExistingEntity(String name);
     List<D> findAll();
 }

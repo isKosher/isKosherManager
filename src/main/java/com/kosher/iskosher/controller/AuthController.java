@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
-
+    //TODO safe refresh token in cookie
     @PostMapping(value = {"/login", "/signin"})
     public ResponseEntity<AuthResponse> login(@RequestHeader("Authorization") String idToken) {
         return ResponseEntity.ok(authService.loginWithGoogle(idToken));

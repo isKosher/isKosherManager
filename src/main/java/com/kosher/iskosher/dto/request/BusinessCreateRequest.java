@@ -4,7 +4,6 @@ import com.kosher.iskosher.dto.BusinessPhotoDto;
 import com.kosher.iskosher.dto.KosherCertificateDto;
 import com.kosher.iskosher.dto.KosherSupervisorDto;
 import com.kosher.iskosher.dto.LocationDto;
-import com.kosher.iskosher.types.LocationDetails;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -24,7 +23,7 @@ public record BusinessCreateRequest(
         Short businessRating,
         @NotNull(message = "LocationInfo is required")
         LocationDto location,
-        String kosherTypeName,
+        List<String> kosherTypes,
         String businessTypeName,
         @NotNull(message = "Food types are required")
         List<String> foodTypes,

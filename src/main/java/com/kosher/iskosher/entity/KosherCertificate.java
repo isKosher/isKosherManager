@@ -1,6 +1,5 @@
 package com.kosher.iskosher.entity;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -29,8 +28,7 @@ public class KosherCertificate {
     @Column(name = "expiration_date", nullable = false)
     private LocalDate expirationDate;
 
-    @OneToMany(mappedBy = "kosherCertificate", fetch = FetchType.LAZY)
-    @JsonManagedReference
-    private Set<Business> businesses = new LinkedHashSet<>();
+    @OneToMany(mappedBy = "certificate")
+    private Set<CertificateBusiness> certificateVsBusinesses = new LinkedHashSet<>();
 
 }

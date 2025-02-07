@@ -1,6 +1,7 @@
 package com.kosher.iskosher.dto.response;
 
 import com.kosher.iskosher.dto.BusinessPhotoDto;
+import com.kosher.iskosher.dto.KosherTypeDto;
 import com.kosher.iskosher.types.LocationInfo;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,19 +22,19 @@ public class BusinessPreviewResponse {
     private String foodItemTypes;
     private LocationInfo location;
     private String businessPhotos;
-    private String kosherType;
+    private String kosherTypes;
     private String businessType;
 
     public BusinessPreviewResponse(UUID businessId, String businessName, String foodTypes, String foodItemTypes,
                                    String address, Integer streetNumber, String city, String businessPhotos,
-                                   String kosherType, String business_type) {
+                                   String kosherTypes, String business_type) {
         this.businessId = businessId;
         this.businessName = businessName;
         this.foodTypes = foodTypes;
         this.foodItemTypes = foodItemTypes;
         this.setLocation(new LocationInfo(address, streetNumber, city));
         this.businessPhotos = businessPhotos;
-        this.kosherType = kosherType;
+        this.kosherTypes = kosherTypes;
         this.businessType = business_type;
     }
 
@@ -44,7 +45,7 @@ public class BusinessPreviewResponse {
         this.foodTypes = foodTypes;
         this.foodItemTypes = foodItemTypes;
         this.businessPhotos = businessPhotos;
-        this.kosherType = kosherType;
+        this.kosherTypes = kosherType;
         this.businessType = businessType;
     }
 
@@ -56,7 +57,9 @@ public class BusinessPreviewResponse {
         return parseJson(foodItemTypes, String.class);
     }
 
-
+    public List<KosherTypeDto> getKosherTypes(){
+        return parseJson(kosherTypes, KosherTypeDto.class);
+    }
     public List<BusinessPhotoDto> getBusinessPhotos() {
         return parseJson(businessPhotos, BusinessPhotoDto.class);
     }

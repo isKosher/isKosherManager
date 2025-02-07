@@ -1,14 +1,11 @@
 package com.kosher.iskosher.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
 import java.util.UUID;
 
 @Getter
@@ -46,9 +43,5 @@ public class Location {
     @NotNull
     @Column(name = "details", nullable = false, length = Integer.MAX_VALUE)
     private String details;
-
-    @OneToMany(mappedBy = "location", fetch = FetchType.LAZY)
-    @JsonManagedReference
-    private Set<LocationsBusiness> locationsVsBusinesses = new LinkedHashSet<>();
 
 }
