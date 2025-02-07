@@ -18,6 +18,7 @@ public class PhotoServiceImpl implements PhotoService {
     private final BusinessPhotoRepository businessPhotoRepository;
     private final UnsplashImageService imageService;
 
+    // TODO: 2/7/2025 Impl to photos CRUD like certificate... 
     @Override
     public List<BusinessPhoto> createBusinessPhotos(List<BusinessPhotoDto> photoDtos, String foodCategory) {
             if (photoDtos == null || photoDtos.isEmpty()) {
