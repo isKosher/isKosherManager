@@ -223,22 +223,43 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @ExceptionHandler(BusinessSearchException.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ResponseEntity<ErrorResponse> handleBusinessSearchException(
-            DatabaseAccessException ex,
-            HttpServletRequest request) {
+    @ExceptionHandler(BusinessFilterException.class)
+    public ResponseEntity<ErrorResponse> handleBusinessFilterException(
+            BusinessFilterException ex, HttpServletRequest request) {
+
         log.error("Business search error: {}", ex.getMessage(), ex);
 
+        HttpStatus status;
+        String errorType;
+
+        switch (ex.getErrorType()) {
+            case DATABASE_ERROR:
+                status = HttpStatus.SERVICE_UNAVAILABLE;
+                errorType = "Database Error";
+                break;
+            case INVALID_FILTER:
+                status = HttpStatus.BAD_REQUEST;
+                errorType = "Invalid Filter Criteria";
+                break;
+            case NO_RESULTS:
+                status = HttpStatus.NOT_FOUND;
+                errorType = "No Results";
+                break;
+            default:
+                status = HttpStatus.INTERNAL_SERVER_ERROR;
+                errorType = "Unexpected Error";
+        }
+
         ErrorResponse error = ErrorResponse.builder()
-                .message("An error occurred while searching businesses: " + ex.getMessage())
-                .error("Search Error")
+                .message("An error occurred: " + ex.getMessage())
+                .error(errorType)
                 .path(request.getRequestURI())
                 .timestamp(Instant.now())
                 .build();
 
-        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(error, status);
     }
+
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
