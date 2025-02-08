@@ -67,7 +67,7 @@ public class DiscoverController {
     }
 
     @GetMapping("/filter")
-    public PageResponse<BusinessPreviewResponse> searchBusinesses(
+    public PageResponse<BusinessPreviewResponse> filterBusinesses(
             BusinessFilterCriteria criteria,
             @PageableDefault(size = 20, sort = {"name"}, direction = Sort.Direction.DESC) Pageable pageable) {
         log.info("Searching businesses with page size: {}, sort: {}", pageable.getPageSize(), pageable.getSort());

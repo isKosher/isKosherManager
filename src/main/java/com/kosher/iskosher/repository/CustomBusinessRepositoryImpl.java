@@ -1,10 +1,12 @@
 package com.kosher.iskosher.repository;
 
+import com.kosher.iskosher.common.enums.ErrorType;
 import com.kosher.iskosher.dto.request.BusinessFilterCriteria;
 import com.kosher.iskosher.dto.response.BusinessPreviewResponse;
-import com.kosher.iskosher.exception.BusinessSearchException;
+import com.kosher.iskosher.exception.BusinessFilterException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.PersistenceException;
 import jakarta.persistence.Query;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -39,49 +41,69 @@ public class CustomBusinessRepositoryImpl implements CustomBusinessRepository {
             long total = ((Number) countQuery.getSingleResult()).longValue();
 
             List<BusinessPreviewResponse> businessPreviews = processResults(results);
-
             return new PageImpl<>(businessPreviews, pageable, total);
+
+        } catch (PersistenceException e) {
+            log.error("Database error: {}", e.getMessage(), e);
+            throw new BusinessFilterException("Database error occurred", e, ErrorType.DATABASE_ERROR);
+        } catch (IllegalArgumentException e) {
+            log.error("Invalid filter criteria: {}", e.getMessage(), e);
+            throw new BusinessFilterException("Invalid filter criteria", e, ErrorType.INVALID_FILTER);
         } catch (Exception e) {
-            log.error("Error while searching businesses: {}", e.getMessage(), e);
-            throw new BusinessSearchException("Failed to search businesses", e);
+            log.error("Unexpected error: {}", e.getMessage(), e);
+            throw new BusinessFilterException("Unexpected error while filtering businesses", e, ErrorType.UNKNOWN);
         }
     }
+
 
     private String buildSearchQuery(BusinessFilterCriteria criteria) {
         StringBuilder queryBuilder = new StringBuilder(
                 "SELECT DISTINCT " +
                         "b.id, " +
                         "b.name, " +
+                        // Aggregate food types using the new junction table
                         "CAST(CONCAT('[\"', STRING_AGG(DISTINCT ft.name, '\",\"'), '\"]') AS text) as food_types, " +
+                        // Aggregate food item types using the new junction table
                         "CAST(CONCAT('[\"', STRING_AGG(DISTINCT fit.name, '\",\"'), '\"]') AS text) as " +
                         "food_item_types, " +
                         "a.name, " +
                         "l.street_number, " +
                         "c.name, " +
+                        // Updated photo aggregation with ID
                         "CAST(CONCAT('[', STRING_AGG(DISTINCT " +
-                        "CONCAT('{\"url\":\"', bp.url, '\",\"photoInfo\":\"', COALESCE(bp.photo_info, ''), '\"}'), '," +
+                        "CONCAT('{\"id\":\"', bp.id, '\",\"url\":\"', bp.url, '\",\"photo_info\":\"', COALESCE(bp" +
+                        ".photo_info, ''), '\"}'), '," +
                         "'), ']') AS text) as photos, " +
-                        "kt.name, " +
+                        // Get kosher type with ID
+                        "CAST(CONCAT('[', STRING_AGG(DISTINCT " +
+                        "CONCAT('{\"id\":\"', kt.id, '\",\"name\":\"', kt.name, '\",\"kosher_icon_url\":\"', COALESCE" +
+                        "(kt.kosher_icon_url, ''), '\"}'), '," +
+                        "'), ']') AS text) as kosher_types, " +
                         "bt.name, " +
                         "b.rating " +
                         "FROM businesses b " +
                         "JOIN business_type bt ON b.business_type = bt.id " +
+                        // Updated joins for food types
                         "LEFT JOIN food_type_businesses ftb ON b.id = ftb.business_id " +
                         "LEFT JOIN food_types ft ON ftb.food_type_id = ft.id " +
+                        // Updated joins for food item types
                         "LEFT JOIN food_item_type_businesses fitb ON b.id = fitb.business_id " +
                         "LEFT JOIN food_item_type fit ON fitb.food_item_type_id = fit.id " +
-                        "JOIN locations_businesses lb ON b.id = lb.business_id " +
-                        "JOIN locations l ON lb.location_id = l.id " +
-                        "JOIN cities c ON l.city_id = c.id " +
-                        "JOIN kosher_types kt ON b.kosher_type_id = kt.id " +
+                        // Updated location joins
+                        "LEFT JOIN locations l ON b.location_id = l.id " +
+                        "LEFT JOIN cities c ON l.city_id = c.id " +
+                        "LEFT JOIN addresses a ON l.address_id = a.id " +
+                        // Updated kosher type joins
+                        "LEFT JOIN kosher_type_businesses ktb ON b.id = ktb.business_id " +
+                        "LEFT JOIN kosher_types kt ON ktb.kosher_type_id = kt.id " +
+                        // Updated photo joins
                         "LEFT JOIN business_photos_businesses bpb ON b.id = bpb.businesses_id " +
                         "LEFT JOIN business_photos bp ON bpb.business_photos_id = bp.id " +
-                        "JOIN addresses a ON l.address_id = a.id " +
-                        "WHERE 1=1 ");
+                        "WHERE b.is_active = true ");
 
         appendCriteriaConditions(queryBuilder, criteria);
 
-        queryBuilder.append("GROUP BY b.id, b.name, a.name, l.street_number, c.name, kt.name, bt.name, b.rating ");
+        queryBuilder.append("GROUP BY b.id, b.name, a.name, l.street_number, c.name, bt.name, b.rating ");
         queryBuilder.append("ORDER BY b.rating DESC NULLS LAST, b.name ASC");
 
         return queryBuilder.toString();
@@ -95,11 +117,11 @@ public class CustomBusinessRepositoryImpl implements CustomBusinessRepository {
                         "LEFT JOIN food_types ft ON ftb.food_type_id = ft.id " +
                         "LEFT JOIN food_item_type_businesses fitb ON b.id = fitb.business_id " +
                         "LEFT JOIN food_item_type fit ON fitb.food_item_type_id = fit.id " +
-                        "JOIN locations_businesses lb ON b.id = lb.business_id " +
-                        "JOIN locations l ON lb.location_id = l.id " +
-                        "JOIN cities c ON l.city_id = c.id " +
-                        "JOIN kosher_types kt ON b.kosher_type_id = kt.id " +
-                        "WHERE 1=1 ");
+                        "LEFT JOIN locations l ON b.location_id = l.id " +
+                        "LEFT JOIN cities c ON l.city_id = c.id " +
+                        "LEFT JOIN kosher_type_businesses ktb ON b.id = ktb.business_id " +
+                        "LEFT JOIN kosher_types kt ON ktb.kosher_type_id = kt.id " +
+                        "WHERE b.is_active = true ");
 
         appendCriteriaConditions(queryBuilder, criteria);
 
