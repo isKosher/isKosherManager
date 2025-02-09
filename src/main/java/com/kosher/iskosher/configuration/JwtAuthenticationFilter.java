@@ -1,6 +1,7 @@
 package com.kosher.iskosher.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kosher.iskosher.common.utils.CookieUtil;
 import com.kosher.iskosher.configuration.jwt.JwtProvider;
 import com.kosher.iskosher.dto.response.ErrorResponse;
 import com.kosher.iskosher.types.CustomAuthentication;
@@ -18,72 +19,61 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-
-    private final JwtProvider jwtService;
-
+    private final JwtProvider jwtProvider;
+    private final CookieUtil cookieUtil;
     private final ObjectMapper objectMapper;
 
     @Value("${spring.security.private-urls}")
     private String privateUrls;
 
-
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-        // Skip JWT authentication for non-protected paths
         return !path.startsWith(privateUrls);
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
-                                    FilterChain chain)
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws IOException {
         try {
-            String authHeader = request.getHeader("Authorization");
+            String token = extractToken(request);
 
-            if (authHeader == null) {
-                handleAuthenticationError(request, response, "Authorization header is missing");
-                return;
-            }
-
-            if (!authHeader.startsWith("Bearer ")) {
-                handleAuthenticationError(request, response, "Authorization header must start with 'Bearer'");
-                return;
-            }
-
-            String token = authHeader.substring(7);
-
-            if (jwtService.validateAccessToken(token)) {
-                String email = jwtService.extractEmailFromAccessToken(token);
-                UUID userId = jwtService.extractUserIdFromAccessToken(token);
+            if (token != null && jwtProvider.validateAccessToken(token)) {
+                UUID userId = jwtProvider.extractUserIdFromAccessToken(token);
+                String email = jwtProvider.extractEmailFromAccessToken(token);
 
                 CustomAuthentication authentication = new CustomAuthentication(email, userId);
                 SecurityContextHolder.getContext().setAuthentication(
-                        new UsernamePasswordAuthenticationToken(
-                                authentication,
-                                null,
-                                authentication.getAuthorities()
-                        )
+                        new UsernamePasswordAuthenticationToken(authentication, null, authentication.getAuthorities())
                 );
             } else {
-                handleAuthenticationError(request, response, "Invalid or expired token");
+                handleAuthenticationError(request, response, "Invalid or missing token");
                 return;
             }
 
             chain.doFilter(request, response);
-
         } catch (Exception e) {
             handleAuthenticationError(request, response, e.getMessage());
         }
     }
 
-    private void handleAuthenticationError(HttpServletRequest request, HttpServletResponse response,
-                                           String errorMessage) throws IOException {
+    private String extractToken(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            return authHeader.substring(7);
+        }
+
+        Optional<String> tokenFromCookie = cookieUtil.getAccessTokenFromCookie(request);
+        return tokenFromCookie.orElse(null);
+    }
+
+    private void handleAuthenticationError(HttpServletRequest request, HttpServletResponse response, String errorMessage) throws IOException {
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .message("Authentication failed")
                 .error(errorMessage)
@@ -95,5 +85,4 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
     }
-
 }
