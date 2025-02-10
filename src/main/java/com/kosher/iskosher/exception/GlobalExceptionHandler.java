@@ -206,6 +206,40 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
+    @ExceptionHandler(InvalidFileException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<ErrorResponse> handleInvalidFileException(
+            InvalidFileException ex,
+            HttpServletRequest request) {
+        log.error("Invalid file error: {}", ex.getMessage());
+
+        ErrorResponse error = ErrorResponse.builder()
+                .message(ex.getMessage())
+                .error("Invalid File")
+                .path(request.getRequestURI())
+                .timestamp(Instant.now())
+                .build();
+
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(FileOperationException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ResponseEntity<ErrorResponse> handleFileOperationException(
+            FileOperationException ex,
+            HttpServletRequest request) {
+        log.error("File operation error: {}", ex.getMessage());
+
+        ErrorResponse error = ErrorResponse.builder()
+                .message("An error occurred while processing the file")  // הודעה כללית למשתמש
+                .error("File Operation Failed")
+                .path(request.getRequestURI())
+                .timestamp(Instant.now())
+                .build();
+
+        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
     @ExceptionHandler(DatabaseAccessException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseEntity<ErrorResponse> handleDatabaseAccessException(
