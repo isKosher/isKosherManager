@@ -18,8 +18,8 @@ public class CookieUtil {
                 .httpOnly(true)
                 .secure(false)
                 .path("/")
+                .sameSite("None")
                 .maxAge(ACCESS_TOKEN_DURATION)
-                .sameSite("Lax")
                 .build();
         response.addHeader("Set-Cookie", cookie.toString());
     }
@@ -29,8 +29,8 @@ public class CookieUtil {
                 .httpOnly(true)
                 .secure(false)
                 .path("/")
+                .sameSite("None")
                 .maxAge(REFRESH_TOKEN_DURATION)
-                .sameSite("Lax")
                 .build();
         response.addHeader("Set-Cookie", cookie.toString());
     }
@@ -40,8 +40,8 @@ public class CookieUtil {
                 .httpOnly(true)
                 .secure(false)
                 .path("/")
+                .sameSite("None")
                 .maxAge(0)
-                .sameSite("Lax")
                 .build();
         response.addHeader("Set-Cookie", cookie.toString());
     }
@@ -51,8 +51,8 @@ public class CookieUtil {
                 .httpOnly(true)
                 .secure(false)
                 .path("/")
+                .sameSite("None")
                 .maxAge(0)
-                .sameSite("Lax")
                 .build();
         response.addHeader("Set-Cookie", cookie.toString());
     }
