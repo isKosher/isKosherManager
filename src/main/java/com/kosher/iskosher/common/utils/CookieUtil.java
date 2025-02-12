@@ -18,8 +18,8 @@ public class CookieUtil {
                 .httpOnly(true)
                 .secure(false)
                 .path("/")
-                .maxAge(AC
-                .sameSite("Lax")CESS_TOKEN_DURATION)
+                .maxAge(ACCESS_TOKEN_DURATION)
+                .sameSite("Lax")
                 .build();
         response.addHeader("Set-Cookie", cookie.toString());
     }
@@ -29,8 +29,8 @@ public class CookieUtil {
                 .httpOnly(true)
                 .secure(false)
                 .path("/")
-                .maxAge(RE
-                .sameSite("Lax")FRESH_TOKEN_DURATION)
+                .maxAge(REFRESH_TOKEN_DURATION)
+                .sameSite("Lax")
                 .build();
         response.addHeader("Set-Cookie", cookie.toString());
     }
