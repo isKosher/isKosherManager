@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class GlobalExceptionHandler {
 
+    // TODO: 2/11/2025 Add this MaxUploadSizeExceededException to glogal 
     @ExceptionHandler(EntityNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResponseEntity<ErrorResponse> handleEntityNotFoundException(
