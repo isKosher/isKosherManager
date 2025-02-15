@@ -16,7 +16,7 @@ public class CookieUtil {
     public void createAccessTokenCookie(String token, HttpServletResponse response) {
         ResponseCookie cookie = ResponseCookie.from(ACCESS_TOKEN_COOKIE, token)
                 .httpOnly(true)
-                .secure(false)
+                .secure(true)
                 .path("/")
                 .sameSite("None")
                 .maxAge(ACCESS_TOKEN_DURATION)
@@ -27,7 +27,7 @@ public class CookieUtil {
     public void createRefreshTokenCookie(String token, HttpServletResponse response) {
         ResponseCookie cookie = ResponseCookie.from(REFRESH_TOKEN_COOKIE, token)
                 .httpOnly(true)
-                .secure(false)
+                .secure(true)
                 .path("/")
                 .sameSite("None")
                 .maxAge(REFRESH_TOKEN_DURATION)
@@ -38,7 +38,7 @@ public class CookieUtil {
     public void deleteAccessTokenCookie(HttpServletResponse response) {
         ResponseCookie cookie = ResponseCookie.from(ACCESS_TOKEN_COOKIE, "")
                 .httpOnly(true)
-                .secure(false)
+                .secure(true)
                 .path("/")
                 .sameSite("None")
                 .maxAge(0)
@@ -49,7 +49,7 @@ public class CookieUtil {
     public void deleteRefreshTokenCookie(HttpServletResponse response) {
         ResponseCookie cookie = ResponseCookie.from(REFRESH_TOKEN_COOKIE, "")
                 .httpOnly(true)
-                .secure(false)
+                .secure(true)
                 .path("/")
                 .sameSite("None")
                 .maxAge(0)
