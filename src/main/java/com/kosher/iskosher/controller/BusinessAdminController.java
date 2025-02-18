@@ -31,9 +31,6 @@ public class BusinessAdminController {
     public ResponseEntity<?> getOwnedBusinesses(@CurrentUser CustomAuthentication currentUser) {
         List<UserOwnedBusinessResponse> businessResponses =
                 userService.getBusinessDetailsByUserId(currentUser.getUserId());
-        if (businessResponses.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
 
         return ResponseEntity.ok(businessResponses);
     }
