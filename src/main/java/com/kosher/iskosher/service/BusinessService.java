@@ -25,4 +25,6 @@ public interface BusinessService {
     PageResponse<BusinessPreviewResponse> getBusinessPreviews(Pageable pageable);
 
     BusinessResponse updateBusiness(UUID userId, BusinessUpdateRequest dto);
+
+    Page<BusinessPreviewTravelResponse> getNearbyBusinesses(double latitude, double longitude, double radiusKm, Pageable pageable);
 }
