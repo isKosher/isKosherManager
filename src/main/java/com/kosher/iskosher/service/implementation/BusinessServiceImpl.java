@@ -53,6 +53,7 @@ public class BusinessServiceImpl implements BusinessService {
     private final FoodItemTypeBusinessRepository foodItemTypeBusinessRepository;
     private final BusinessPhotosBusinessRepository businessPhotosBusinessRepository;
     private final UsersBusinessRepository usersBusinessRepository;
+    private final TravelTimeService travelTimeService;
     //endregion
 
     //region Caching Configurations
@@ -349,6 +350,10 @@ public class BusinessServiceImpl implements BusinessService {
     @Override
     public Page<BusinessPreviewResponse> filterBusinesses(BusinessFilterCriteria criteria, Pageable pageable) {
         return businessRepository.filterBusinesses(criteria, pageable);
+    }
+    @Override
+    public Page<BusinessPreviewTravelResponse> getNearbyBusinesses(double centerLat, double centerLon, double radiusKm, Pageable pageable) {
+        return businessRepository.getNearbyBusinesses(centerLat, centerLon, radiusKm, travelTimeService, pageable);
     }
 
 }
