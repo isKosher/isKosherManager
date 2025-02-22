@@ -224,7 +224,7 @@ public class BusinessServiceImpl implements BusinessService {
         Business business = new Business();
         business.setName(dto.businessName());
         business.setDetails(dto.businessDetails());
-        business.setRating(dto.businessRating().shortValue());
+        business.setRating(dto.businessRating() != null ? dto.businessRating().shortValue() : 0);
         business.setBusinessType(businessType);
         business.setLocation(location);
         business.setCreatedAt(OffsetDateTime.now());
