@@ -129,20 +129,20 @@ public class CustomBusinessRepositoryImpl implements CustomBusinessRepository {
     }
 
     private void appendCriteriaConditions(StringBuilder queryBuilder, BusinessFilterCriteria criteria) {
-        if (criteria.getBusinessType() != null) {
-            queryBuilder.append("AND bt.name = :businessType ");
+        if (criteria.getBusinessTypes() != null && !criteria.getBusinessTypes().isEmpty()) {
+            queryBuilder.append("AND bt.name IN (:businessTypes) ");
         }
-        if (criteria.getFoodType() != null) {
-            queryBuilder.append("AND ft.name = :foodType ");
+        if (criteria.getFoodTypes() != null && !criteria.getFoodTypes().isEmpty()) {
+            queryBuilder.append("AND ft.name IN (:foodTypes) ");
         }
-        if (criteria.getFoodItemType() != null) {
-            queryBuilder.append("AND fit.name = :foodItemType ");
+        if (criteria.getFoodItemTypes() != null && !criteria.getFoodItemTypes().isEmpty()) {
+            queryBuilder.append("AND fit.name IN (:foodItemTypes) ");
+        }
+        if (criteria.getKosherTypes() != null && !criteria.getKosherTypes().isEmpty()) {
+            queryBuilder.append("AND kt.name IN (:kosherTypes) ");
         }
         if (criteria.getCity() != null) {
             queryBuilder.append("AND c.name = :city ");
-        }
-        if (criteria.getKosherType() != null) {
-            queryBuilder.append("AND kt.name = :kosherType ");
         }
         if (criteria.getRating() != null) {
             queryBuilder.append("AND b.rating >= :rating ");
@@ -151,20 +151,20 @@ public class CustomBusinessRepositoryImpl implements CustomBusinessRepository {
 
     private void setQueryParameters(Query query, Query countQuery, BusinessFilterCriteria criteria,
                                     Map<String, Object> parameters) {
-        if (criteria.getBusinessType() != null) {
-            parameters.put("businessType", criteria.getBusinessType());
+        if (criteria.getBusinessTypes() != null && !criteria.getBusinessTypes().isEmpty()) {
+            parameters.put("businessTypes", criteria.getBusinessTypes());
         }
-        if (criteria.getFoodType() != null) {
-            parameters.put("foodType", criteria.getFoodType());
+        if (criteria.getFoodTypes() != null && !criteria.getFoodTypes().isEmpty()) {
+            parameters.put("foodTypes", criteria.getFoodTypes());
         }
-        if (criteria.getFoodItemType() != null) {
-            parameters.put("foodItemType", criteria.getFoodItemType());
+        if (criteria.getFoodItemTypes() != null && !criteria.getFoodItemTypes().isEmpty()) {
+            parameters.put("foodItemTypes", criteria.getFoodItemTypes());
+        }
+        if (criteria.getKosherTypes() != null && !criteria.getKosherTypes().isEmpty()) {
+            parameters.put("kosherTypes", criteria.getKosherTypes());
         }
         if (criteria.getCity() != null) {
             parameters.put("city", criteria.getCity());
-        }
-        if (criteria.getKosherType() != null) {
-            parameters.put("kosherType", criteria.getKosherType());
         }
         if (criteria.getRating() != null) {
             parameters.put("rating", criteria.getRating());
@@ -175,6 +175,7 @@ public class CustomBusinessRepositoryImpl implements CustomBusinessRepository {
             countQuery.setParameter(entry.getKey(), entry.getValue());
         }
     }
+
 
     private List<BusinessPreviewResponse> processResults(List<Object[]> results) {
         List<BusinessPreviewResponse> businessList = new ArrayList<>();
