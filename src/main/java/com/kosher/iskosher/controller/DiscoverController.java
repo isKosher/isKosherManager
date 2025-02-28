@@ -1,10 +1,7 @@
 package com.kosher.iskosher.controller;
 
 import com.kosher.iskosher.dto.request.BusinessFilterCriteria;
-import com.kosher.iskosher.dto.response.BusinessDetailedResponse;
-import com.kosher.iskosher.dto.response.BusinessPreviewResponse;
-import com.kosher.iskosher.dto.response.BusinessSearchResponse;
-import com.kosher.iskosher.dto.response.PageResponse;
+import com.kosher.iskosher.dto.response.*;
 import com.kosher.iskosher.service.BusinessService;
 import jakarta.validation.ValidationException;
 import jakarta.validation.constraints.Max;
@@ -12,6 +9,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -91,5 +89,47 @@ public class DiscoverController {
         return ResponseEntity.ok(businessService.getBusinessDetails(id));
     }
 
+    @GetMapping("/nearby")
+    public ResponseEntity<?> getNearbyBusinesses(
+            @RequestParam double lat,
+            @RequestParam double lon,
+            @RequestParam(defaultValue = "15.0") @Min(value = 0, message = "Radius must be positive")
+            @Max(value = 2000, message = "Radius must be less than or equal to 50 km") double radius,
+            @RequestParam(defaultValue = "1") @Min(value = 1, message = "Page must be greater than or equal to 1") int page,
+            @RequestParam(defaultValue = "10") @Min(value = 1, message = "Size must be greater than or equal to 1")
+            @Max(value = 100, message = "Size must be less than or equal to 100") int size
+    ) {
+        try {
 
+            if (page < 1) {
+                throw new ValidationException("Page must be greater than or equal to 1");
+            }
+            if (size < 1 || size > 100) {
+                throw new ValidationException("Size must be between 1 and 100");
+            }
+            if (radius < 0 || radius > 2000) {
+                throw new ValidationException("Radius must be between 0 and 2000 kilometers");
+            }
+
+            int adjustedPage = page - 1;
+            Pageable pageable = PageRequest.of(adjustedPage, size);
+
+            Page<BusinessPreviewTravelResponse> businesses =
+                    businessService.getNearbyBusinesses(lat, lon, radius, pageable);
+
+            if (businesses.isEmpty()) {
+                return ResponseEntity.noContent().build();
+            }
+
+            return ResponseEntity.ok(businesses);
+
+        } catch (ValidationException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            log.error("Error fetching nearby businesses", e);
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An unexpected error occurred");
+        }
+    }
 }
