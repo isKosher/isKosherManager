@@ -13,13 +13,17 @@ import com.kosher.iskosher.exception.EntityNotFoundException;
 import com.kosher.iskosher.repository.*;
 import com.kosher.iskosher.service.*;
 import com.kosher.iskosher.service.lookups.*;
+import com.kosher.iskosher.types.DestinationLocation;
+import com.kosher.iskosher.types.TravelInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -301,7 +305,7 @@ public class BusinessServiceImpl implements BusinessService {
     }
 
     @Override
-    public PageResponse<BusinessPreviewResponse> getBusinessPreviews(Pageable pageable) {
+    public Page<BusinessPreviewResponse> getBusinessPreviews(Pageable pageable) {
         int limit = pageable.getPageSize();
         int offset = (int) pageable.getOffset();
         List<BusinessPreviewResponse> businesses = businessRepository.getAllBusinesses(
@@ -310,15 +314,7 @@ public class BusinessServiceImpl implements BusinessService {
         );
 
         long totalElements = countAllBusinesses();
-
-        int totalPages = (int) Math.ceil((double) totalElements / limit);
-        PageResponse<BusinessPreviewResponse> response = new PageResponse<>();
-        response.setContent(businesses);
-        response.setPageNumber(pageable.getPageNumber() + 1);
-        response.setPageSize(limit);
-        response.setTotalElements(totalElements);
-        response.setTotalPages(totalPages);
-        return response;
+        return new PageImpl<>(businesses, pageable, totalElements);
     }
 
     @Override
@@ -344,16 +340,85 @@ public class BusinessServiceImpl implements BusinessService {
         if (searchTerm == null || searchTerm.trim().isEmpty()) {
             return Collections.emptyList();
         }
-        return businessRepository.searchBusinesses(searchTerm);
+
+        return businessRepository.searchBusinessesRaw(searchTerm)
+                .stream()
+                .map(BusinessSearchResponse::new)
+                .collect(Collectors.toList());
     }
 
     @Override
     public Page<BusinessPreviewResponse> filterBusinesses(BusinessFilterCriteria criteria, Pageable pageable) {
         return businessRepository.filterBusinesses(criteria, pageable);
     }
+
     @Override
-    public Page<BusinessPreviewTravelResponse> getNearbyBusinesses(double centerLat, double centerLon, double radiusKm, Pageable pageable) {
-        return businessRepository.getNearbyBusinesses(centerLat, centerLon, radiusKm, travelTimeService, pageable);
+    public Page<BusinessPreviewTravelResponse> getNearbyBusinesses(double centerLat, double centerLon,
+                                                                   double radiusKm, Pageable pageable) {
+
+        int expandedSize = pageable.getPageSize() * 2;
+
+        List<Object[]> rawResults = businessRepository.getNearbyBusinessesRaw(
+                centerLat, centerLon, radiusKm, EARTH_RADIUS_KM,
+                expandedSize, (int) pageable.getOffset()
+        );
+
+        List<BusinessPreviewTravelResponse> businesses = rawResults.stream()
+                .map(row -> {
+                    // Fetch travel info safely, avoiding NullPointerException
+                    Optional<TravelInfo> travelInfoOpt = travelTimeService.getTravelInfo(
+                            centerLat, centerLon, (Double) row[6], (Double) row[7]
+                    );
+
+                    // If no travel data is available, provide default values to prevent issues
+                    TravelInfo travelInfo = travelInfoOpt.orElseGet(() -> TravelInfo.builder()
+                            .drivingDistance("N/A")
+                            .drivingDuration("N/A")
+                            .walkingDistance("N/A")
+                            .walkingDuration("N/A")
+                            .build());
+
+                    return new BusinessPreviewTravelResponse(
+                            (UUID) row[0],  // id
+                            (String) row[1], // name
+                            (String) row[8], // address
+                            (String) row[9], // street_number
+                            (String) row[2], // city
+                            (Integer) row[3], // business_type
+                            (String) row[4], // food_types
+                            (String) row[10], // food_item_types
+                            (String) row[11], // kosher_types
+                            (String) row[5], // business_photos
+                            travelInfo,
+                            new DestinationLocation((Double) row[6], (Double) row[7])
+                    );
+                })
+                .filter(dto -> {
+                    // Extract and clean distance string, then safely convert it to a double
+                    String distanceStr = dto.getTravelInfo().drivingDistance().replace(" ק\"מ", "");
+                    try {
+                        double actualDistance = new BigDecimal(distanceStr).doubleValue();
+                        return actualDistance <= radiusKm; // Filter businesses within the specified radius
+                    } catch (NumberFormatException e) {
+                        log.warn("Failed to parse distance: {}", distanceStr);
+                        return false; // Ignore invalid distances
+                    }
+                })
+                .sorted(Comparator.comparingDouble(dto -> {
+                    // Sort businesses by driving distance, handling potential parsing issues
+                    String distanceStr = dto.getTravelInfo().drivingDistance().replace(" ק\"מ", "");
+                    try {
+                        return new BigDecimal(distanceStr).doubleValue();
+                    } catch (NumberFormatException e) {
+                        return Double.MAX_VALUE; // Move problematic entries to the end
+                    }
+                }))
+                .limit(pageable.getPageSize())
+                .collect(Collectors.toList());
+        // Calculate total elements (approximate) to maintain pagination behavior
+        long totalElements = rawResults.size() + pageable.getOffset();
+
+        return new PageImpl<>(businesses, pageable, totalElements);
     }
 
 }
