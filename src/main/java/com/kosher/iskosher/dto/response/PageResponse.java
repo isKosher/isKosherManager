@@ -33,7 +33,7 @@ public class PageResponse<T> {
         this.content = page.getContent();
 
         // The current page number (zero-based index)
-        this.pageNumber = page.getNumber();
+        this.pageNumber = page.getNumber() + 1;
 
         // The number of items per page (page size)
         this.pageSize = page.getSize();
