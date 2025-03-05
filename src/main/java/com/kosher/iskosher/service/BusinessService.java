@@ -22,7 +22,7 @@ public interface BusinessService {
 
     List<BusinessSearchResponse> searchBusinesses(String searchTerm);
 
-    PageResponse<BusinessPreviewResponse> getBusinessPreviews(Pageable pageable);
+    Page<BusinessPreviewResponse> getBusinessPreviews(Pageable pageable);
 
     BusinessResponse updateBusiness(UUID userId, BusinessUpdateRequest dto);
 
