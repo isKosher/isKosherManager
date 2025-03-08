@@ -16,7 +16,7 @@ import java.time.Duration;
 @Configuration
 @EnableCaching
 public class CacheConfig {
-    //TODO: fix time cache and use for create business
+    //TODO: Use this cache for create business
     @Bean
     public org.springframework.cache.CacheManager cacheManager() {
         CachingProvider cachingProvider = Caching.getCachingProvider();
@@ -33,7 +33,7 @@ public class CacheConfig {
                                         String.class, Object.class,
                                         ResourcePoolsBuilder.heap(1000)
                                 )
-                                .withExpiry(ExpiryPolicyBuilder.timeToLiveExpiration(Duration.ofSeconds(10)))
+                                .withExpiry(ExpiryPolicyBuilder.timeToLiveExpiration(Duration.ofMinutes(15)))
                                 .build()
                 )
         );
