@@ -2,6 +2,7 @@ package com.kosher.iskosher.repository;
 
 import com.kosher.iskosher.dto.response.BusinessDetailedResponse;
 import com.kosher.iskosher.dto.response.BusinessPreviewResponse;
+import com.kosher.iskosher.dto.response.BusinessPreviewTravelResponse;
 import com.kosher.iskosher.entity.Business;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -54,11 +55,13 @@ public interface BusinessRepository extends JpaRepository<Business, UUID>, Custo
     @Query(nativeQuery = true)
     Optional<BusinessDetailedResponse> getBusinessDetails(@Param("businessId") UUID businessId);
 
-    @Query(value = "SELECT * FROM get_nearby_businesses_with_travel(:lat, :lon, :radius, :earthRadius, :limitParam, " +
-            ":offsetParam)",
-            nativeQuery = true)
-    List<Object[]> getNearbyBusinessesRaw(@Param("lat") double centerLat, @Param("lon") double centerLon,
-                                          @Param("radius") double radiusKm, @Param("earthRadius") double earthRadiusKm,
-                                          @Param("limitParam") Integer limitParam,
-                                          @Param("offsetParam") Integer offsetParam);
+    @Query(nativeQuery = true)
+    List<BusinessPreviewTravelResponse> getNearbyBusinesses(
+            @Param("lat") double centerLat,
+            @Param("lon") double centerLon,
+            @Param("radius") double radiusKm,
+            @Param("earthRadius") double earthRadiusKm,
+            @Param("limitParam") Integer limitParam,
+            @Param("offsetParam") Integer offsetParam
+    );
 }

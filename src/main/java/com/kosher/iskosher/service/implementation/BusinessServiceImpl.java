@@ -13,7 +13,7 @@ import com.kosher.iskosher.exception.EntityNotFoundException;
 import com.kosher.iskosher.repository.*;
 import com.kosher.iskosher.service.*;
 import com.kosher.iskosher.service.lookups.*;
-import com.kosher.iskosher.types.DestinationLocation;
+import com.kosher.iskosher.types.LocationDetails;
 import com.kosher.iskosher.types.TravelInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -356,18 +356,16 @@ public class BusinessServiceImpl implements BusinessService {
     public Page<BusinessPreviewTravelResponse> getNearbyBusinesses(double centerLat, double centerLon,
                                                                    double radiusKm, Pageable pageable) {
 
-        int expandedSize = pageable.getPageSize() * 2;
-
-        List<Object[]> rawResults = businessRepository.getNearbyBusinessesRaw(
+        List<BusinessPreviewTravelResponse> businessesNearby = businessRepository.getNearbyBusinesses(
                 centerLat, centerLon, radiusKm, EARTH_RADIUS_KM,
-                expandedSize, (int) pageable.getOffset()
+                pageable.getPageSize(), (int) pageable.getOffset()
         );
 
-        List<BusinessPreviewTravelResponse> businesses = rawResults.stream()
-                .map(row -> {
+        List<BusinessPreviewTravelResponse> businesses = businessesNearby.stream()
+                .map(business -> {
                     // Fetch travel info safely, avoiding NullPointerException
                     Optional<TravelInfo> travelInfoOpt = travelTimeService.getTravelInfo(
-                            centerLat, centerLon, (Double) row[6], (Double) row[7]
+                            centerLat, centerLon,((LocationDetails) business.getLocation()).getLatitude() ,((LocationDetails) business.getLocation()).getLongitude()
                     );
 
                     // If no travel data is available, provide default values to prevent issues
@@ -378,20 +376,7 @@ public class BusinessServiceImpl implements BusinessService {
                             .walkingDuration("N/A")
                             .build());
 
-                    return new BusinessPreviewTravelResponse(
-                            (UUID) row[0],  // id
-                            (String) row[1], // name
-                            (String) row[8], // address
-                            (String) row[9], // street_number
-                            (String) row[2], // city
-                            (Integer) row[3], // business_type
-                            (String) row[4], // food_types
-                            (String) row[10], // food_item_types
-                            (String) row[11], // kosher_types
-                            (String) row[5], // business_photos
-                            travelInfo,
-                            new DestinationLocation((Double) row[6], (Double) row[7])
-                    );
+                    return business.setTravelInfo(travelInfo);
                 })
                 .filter(dto -> {
                     // Extract and clean distance string, then safely convert it to a double
@@ -416,7 +401,7 @@ public class BusinessServiceImpl implements BusinessService {
                 .limit(pageable.getPageSize())
                 .collect(Collectors.toList());
         // Calculate total elements (approximate) to maintain pagination behavior
-        long totalElements = rawResults.size() + pageable.getOffset();
+        long totalElements = businessesNearby.size() + pageable.getOffset();
 
         return new PageImpl<>(businesses, pageable, totalElements);
     }

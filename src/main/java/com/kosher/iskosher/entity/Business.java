@@ -2,6 +2,7 @@ package com.kosher.iskosher.entity;
 
 import com.kosher.iskosher.dto.response.BusinessDetailedResponse;
 import com.kosher.iskosher.dto.response.BusinessPreviewResponse;
+import com.kosher.iskosher.dto.response.BusinessPreviewTravelResponse;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -45,27 +46,7 @@ import java.util.UUID;
 )
 @NamedNativeQuery(
         name = "Business.getBusinessDetails",
-        query = """
-                SELECT 
-                    b.business_id,
-                    b.business_name,
-                    b.food_types,
-                    b.food_item_types,
-                    b.address,
-                    b.street_number,
-                    b.city,
-                    b.longitude,
-                    b.latitude,
-                    b.business_photos,
-                    b.kosher_types,
-                    b.business_type,
-                    b.business_details,
-                    b.location_details,
-                    b.business_rating,
-                    b.kosher_supervisors,
-                    b.kosher_certificates
-                FROM get_business_details(:businessId) AS b
-                """,
+        query = "SELECT * FROM get_business_details(:businessId)",
         resultSetMapping = "BusinessDetailedResponseMapping"
 )
 @SqlResultSetMapping(
@@ -88,21 +69,34 @@ import java.util.UUID;
 )
 @NamedNativeQuery(
         name = "Business.getAllBusinesses",
-        query = """
-                     SELECT
-                        result.business_id,
-                        result.business_name,
-                        result.food_types,
-                        result.food_item_types,
-                        result.address,
-                        result.street_number,
-                        result.city,
-                        result.business_photos,
-                        result.kosher_types,
-                        result.business_type
-                     FROM get_all_businesses(:limitParam, :offsetParam) AS result
-                """,
+        query = "SELECT * FROM get_all_businesses(:limitParam, :offsetParam)",
         resultSetMapping = "BusinessPreviewResponseMapping"
+)
+@SqlResultSetMapping(
+        name = "BusinessPreviewTravelResponseMapping",
+        classes = @ConstructorResult(
+                targetClass = BusinessPreviewTravelResponse.class,
+                columns = {
+                        @ColumnResult(name = "business_id", type = UUID.class),
+                        @ColumnResult(name = "business_name", type = String.class),
+                        @ColumnResult(name = "food_types", type = String.class),
+                        @ColumnResult(name = "food_item_types", type = String.class),
+                        @ColumnResult(name = "address", type = String.class),
+                        @ColumnResult(name = "street_number", type = Integer.class),
+                        @ColumnResult(name = "city", type = String.class),
+                        @ColumnResult(name = "longitude", type = Double.class),
+                        @ColumnResult(name = "latitude", type = Double.class),
+                        @ColumnResult(name = "business_photos", type = String.class),
+                        @ColumnResult(name = "kosher_types", type = String.class),
+                        @ColumnResult(name = "business_type", type = String.class),
+                }
+        )
+)
+//Return also calculated_distance if need...
+@NamedNativeQuery(
+        name = "Business.getNearbyBusinesses",
+        query = "SELECT * FROM get_nearby_businesses_with_travel(:lat, :lon, :radius, :earthRadius, :limitParam, :offsetParam)",
+        resultSetMapping = "BusinessPreviewTravelResponseMapping"
 )
 
 public class Business {
