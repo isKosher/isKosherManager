@@ -9,11 +9,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Service
@@ -25,13 +27,19 @@ public class OsrmTravelTimeServiceImpl implements TravelTimeService {
     @Value("${osrm.api.url}")
     private String osrmApiUrl;
 
-
     @Cacheable(value = "travelInfoCache", key = "#fromLat + ',' + #fromLon + ',' + #toLat + ',' + #toLon")
     public Optional<TravelInfo> getTravelInfo(double fromLat, double fromLon, double toLat, double toLon) {
         try {
+            // Execute both API calls concurrently
+            CompletableFuture<Optional<OsrmRoute>> drivingRouteFuture = fetchRouteAsync(TravelMode.DRIVING, fromLat, fromLon, toLat, toLon);
+            CompletableFuture<Optional<OsrmRoute>> walkingRouteFuture = fetchRouteAsync(TravelMode.WALKING, fromLat, fromLon, toLat, toLon);
 
-            Optional<OsrmRoute> drivingRoute = fetchRoute(TravelMode.DRIVING, fromLat, fromLon, toLat, toLon);
-            Optional<OsrmRoute> walkingRoute = fetchRoute(TravelMode.WALKING, fromLat, fromLon, toLat, toLon);
+            // Wait for both to complete
+            CompletableFuture.allOf(drivingRouteFuture, walkingRouteFuture).join();
+
+            // Get results
+            Optional<OsrmRoute> drivingRoute = drivingRouteFuture.get();
+            Optional<OsrmRoute> walkingRoute = walkingRouteFuture.get();
 
             if (drivingRoute.isPresent() && walkingRoute.isPresent()) {
                 adjustWalkingDuration(walkingRoute.get());
@@ -50,6 +58,11 @@ public class OsrmTravelTimeServiceImpl implements TravelTimeService {
         }
 
         return Optional.empty();
+    }
+
+    @Async
+    public CompletableFuture<Optional<OsrmRoute>> fetchRouteAsync(TravelMode travelMode, double fromLat, double fromLon, double toLat, double toLon) {
+        return CompletableFuture.completedFuture(fetchRoute(travelMode, fromLat, fromLon, toLat, toLon));
     }
 
     private Optional<OsrmRoute> fetchRoute(TravelMode travelMode, double fromLat, double fromLon, double toLat, double toLon) {
