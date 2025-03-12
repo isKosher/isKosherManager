@@ -355,55 +355,71 @@ public class BusinessServiceImpl implements BusinessService {
     @Override
     public Page<BusinessPreviewTravelResponse> getNearbyBusinesses(double centerLat, double centerLon,
                                                                    double radiusKm, Pageable pageable) {
-
+        // Get initial nearby businesses from repository
         List<BusinessPreviewTravelResponse> businessesNearby = businessRepository.getNearbyBusinesses(
                 centerLat, centerLon, radiusKm, EARTH_RADIUS_KM,
                 pageable.getPageSize(), (int) pageable.getOffset()
         );
 
-        List<BusinessPreviewTravelResponse> businesses = businessesNearby.stream()
-                .map(business -> {
-                    // Fetch travel info safely, avoiding NullPointerException
-                    Optional<TravelInfo> travelInfoOpt = travelTimeService.getTravelInfo(
-                            centerLat, centerLon,((LocationDetails) business.getLocation()).getLatitude() ,((LocationDetails) business.getLocation()).getLongitude()
-                    );
-
-                    // If no travel data is available, provide default values to prevent issues
-                    TravelInfo travelInfo = travelInfoOpt.orElseGet(() -> TravelInfo.builder()
-                            .drivingDistance("N/A")
-                            .drivingDuration("N/A")
-                            .walkingDistance("N/A")
-                            .walkingDuration("N/A")
-                            .build());
-
-                    return business.setTravelInfo(travelInfo);
-                })
-                .filter(dto -> {
-                    // Extract and clean distance string, then safely convert it to a double
-                    String distanceStr = dto.getTravelInfo().drivingDistance().replace(" ק\"מ", "");
-                    try {
-                        double actualDistance = new BigDecimal(distanceStr).doubleValue();
-                        return actualDistance <= radiusKm; // Filter businesses within the specified radius
-                    } catch (NumberFormatException e) {
-                        log.warn("Failed to parse distance: {}", distanceStr);
-                        return false; // Ignore invalid distances
-                    }
-                })
-                .sorted(Comparator.comparingDouble(dto -> {
-                    // Sort businesses by driving distance, handling potential parsing issues
-                    String distanceStr = dto.getTravelInfo().drivingDistance().replace(" ק\"מ", "");
-                    try {
-                        return new BigDecimal(distanceStr).doubleValue();
-                    } catch (NumberFormatException e) {
-                        return Double.MAX_VALUE; // Move problematic entries to the end
-                    }
-                }))
+        // Enrich with travel information and apply filters
+        List<BusinessPreviewTravelResponse> enrichedBusinesses = businessesNearby.stream()
+                .map(business -> enrichWithTravelInfo(business, centerLat, centerLon))
+                .filter(business -> isWithinRadius(business, radiusKm))
+                .sorted(Comparator.comparingDouble(this::extractDistance))
                 .limit(pageable.getPageSize())
                 .collect(Collectors.toList());
-        // Calculate total elements (approximate) to maintain pagination behavior
-        long totalElements = businessesNearby.size() + pageable.getOffset();
 
-        return new PageImpl<>(businesses, pageable, totalElements);
+        // Create paginated response
+        long totalElements = businessesNearby.size() + pageable.getOffset();
+        return new PageImpl<>(enrichedBusinesses, pageable, totalElements);
     }
 
+    /**
+     * Enriches a business with travel information
+     */
+    private BusinessPreviewTravelResponse enrichWithTravelInfo(
+            BusinessPreviewTravelResponse business, double centerLat, double centerLon) {
+
+        LocationDetails location = (LocationDetails) business.getLocation();
+        Optional<TravelInfo> travelInfoOpt = travelTimeService.getTravelInfo(
+                centerLat, centerLon, location.getLatitude(), location.getLongitude()
+        );
+
+        // Provide default values if travel info is not available
+        TravelInfo travelInfo = travelInfoOpt.orElseGet(() ->
+                TravelInfo.builder()
+                        .drivingDistance("N/A")
+                        .drivingDuration("N/A")
+                        .walkingDistance("N/A")
+                        .walkingDuration("N/A")
+                        .build());
+
+        return business.setTravelInfo(travelInfo);
+    }
+
+    /**
+     * Checks if a business is within the specified radius
+     */
+    private boolean isWithinRadius(BusinessPreviewTravelResponse business, double radiusKm) {
+        try {
+            double distance = extractDistance(business);
+            return distance <= radiusKm;
+        } catch (NumberFormatException e) {
+            log.warn("Failed to parse distance for business: {}", business.getBusinessId());
+            return false;
+        }
+    }
+
+    /**
+     * Extracts the distance value from a business's travel info
+     */
+    private double extractDistance(BusinessPreviewTravelResponse business) {
+        String distanceStr = business.getTravelInfo().drivingDistance().replace(" ק\"מ", "");
+        try {
+            return new BigDecimal(distanceStr).doubleValue();
+        } catch (NumberFormatException e) {
+            log.warn("Failed to parse distance: {}", distanceStr);
+            return Double.MAX_VALUE; // Place entries with parsing issues at the end
+        }
+    }
 }
