@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -361,23 +362,37 @@ public class BusinessServiceImpl implements BusinessService {
                 pageable.getPageSize(), (int) pageable.getOffset()
         );
 
-        // Enrich with travel information and apply filters
-        List<BusinessPreviewTravelResponse> enrichedBusinesses = businessesNearby.stream()
-                .map(business -> enrichWithTravelInfo(business, centerLat, centerLon))
-                .filter(business -> isWithinRadius(business, radiusKm))
-                .sorted(Comparator.comparingDouble(this::extractDistance))
-                .limit(pageable.getPageSize())
-                .collect(Collectors.toList());
+        // Create a list to hold all futures
+        List<CompletableFuture<BusinessPreviewTravelResponse>> futures = businessesNearby.stream()
+                .map(business -> enrichWithTravelInfoAsync(business, centerLat, centerLon))
+                .toList();
+
+        // Wait for all futures to complete
+        CompletableFuture<Void> allFutures = CompletableFuture.allOf(
+                futures.toArray(new CompletableFuture[0])
+        );
+
+        // Get results and apply filters
+        CompletableFuture<List<BusinessPreviewTravelResponse>> resultFuture = allFutures.thenApply(v ->
+                futures.stream()
+                        .map(CompletableFuture::join)
+                        .filter(business -> isWithinRadius(business, radiusKm))
+                        .sorted(Comparator.comparingDouble(this::extractDistance))
+                        .limit(pageable.getPageSize())
+                        .collect(Collectors.toList())
+        );
 
         // Create paginated response
+        List<BusinessPreviewTravelResponse> enrichedBusinesses = resultFuture.join();
         long totalElements = businessesNearby.size() + pageable.getOffset();
         return new PageImpl<>(enrichedBusinesses, pageable, totalElements);
     }
 
     /**
-     * Enriches a business with travel information
+     * Asynchronously enriches a business with travel information
      */
-    private BusinessPreviewTravelResponse enrichWithTravelInfo(
+    @Async
+    public CompletableFuture<BusinessPreviewTravelResponse> enrichWithTravelInfoAsync(
             BusinessPreviewTravelResponse business, double centerLat, double centerLon) {
 
         LocationDetails location = (LocationDetails) business.getLocation();
@@ -394,7 +409,7 @@ public class BusinessServiceImpl implements BusinessService {
                         .walkingDuration("N/A")
                         .build());
 
-        return business.setTravelInfo(travelInfo);
+        return CompletableFuture.completedFuture(business.setTravelInfo(travelInfo));
     }
 
     /**
