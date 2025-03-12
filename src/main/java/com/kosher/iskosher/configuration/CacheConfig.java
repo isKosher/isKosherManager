@@ -2,7 +2,6 @@ package com.kosher.iskosher.configuration;
 
 import org.ehcache.config.builders.*;
 import org.ehcache.jsr107.Eh107Configuration;
-import org.ehcache.jsr107.EhcacheCachingProvider;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.jcache.JCacheCacheManager;
 import org.springframework.context.annotation.Bean;
@@ -16,24 +15,23 @@ import java.time.Duration;
 @Configuration
 @EnableCaching
 public class CacheConfig {
-    //TODO: Use this cache for create business
+
+    private static final String TRAVEL_INFO_CACHE = "travelInfoCache";
+    private static final int CACHE_SIZE = 1000;  // Max 1000 entries
+    private static final Duration CACHE_TTL = Duration.ofMinutes(15); // Expiration time
+
     @Bean
     public org.springframework.cache.CacheManager cacheManager() {
         CachingProvider cachingProvider = Caching.getCachingProvider();
-        EhcacheCachingProvider ehcacheProvider = (EhcacheCachingProvider) cachingProvider;
+        CacheManager cacheManager = cachingProvider.getCacheManager();
 
-        CacheManager cacheManager = ehcacheProvider.getCacheManager(
-                ehcacheProvider.getDefaultURI(),
-                ehcacheProvider.getDefaultClassLoader()
-        );
-
-        cacheManager.createCache("travelInfoCache",
+        cacheManager.createCache(TRAVEL_INFO_CACHE,
                 Eh107Configuration.fromEhcacheCacheConfiguration(
                         CacheConfigurationBuilder.newCacheConfigurationBuilder(
                                         String.class, Object.class,
-                                        ResourcePoolsBuilder.heap(1000)
+                                        ResourcePoolsBuilder.heap(CACHE_SIZE)
                                 )
-                                .withExpiry(ExpiryPolicyBuilder.timeToLiveExpiration(Duration.ofMinutes(15)))
+                                .withExpiry(ExpiryPolicyBuilder.timeToLiveExpiration(CACHE_TTL))
                                 .build()
                 )
         );
