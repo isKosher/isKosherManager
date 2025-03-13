@@ -5,14 +5,11 @@ import com.kosher.iskosher.common.interfaces.NamedEntityDto;
 import com.kosher.iskosher.exception.DatabaseAccessException;
 import com.kosher.iskosher.exception.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataAccessException;
 
-import java.util.Base64;
-import java.util.Comparator;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
-
 @RequiredArgsConstructor
 public abstract class AbstractLookupService<T extends NamedEntity, D extends NamedEntityDto>
         implements LookupService<T, D> {
@@ -38,6 +35,7 @@ public abstract class AbstractLookupService<T extends NamedEntity, D extends Nam
             throw new DatabaseAccessException("Error accessing the database while retrieving entity by name", e);
         }
     }
+
     public D getOrCreateDto(String name) {
         try {
             T entity = repository.findByNameIgnoreCase(name)
@@ -50,6 +48,7 @@ public abstract class AbstractLookupService<T extends NamedEntity, D extends Nam
         }
     }
 
+    @Cacheable(value = "lookupCache", key = "#name")
     public T getOrCreateEntity(String name) {
         try {
             return repository.findByNameIgnoreCase(name)
@@ -82,6 +81,7 @@ public abstract class AbstractLookupService<T extends NamedEntity, D extends Nam
             throw new DatabaseAccessException("Error accessing the database while retrieving all entities", e);  //
         }
     }
+    
     protected abstract T createEntity(String name);
 
     protected abstract D mapToDto(T entity);

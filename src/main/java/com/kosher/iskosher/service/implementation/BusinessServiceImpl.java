@@ -1,8 +1,5 @@
 package com.kosher.iskosher.service.implementation;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.kosher.iskosher.dto.request.BusinessCreateRequest;
 import com.kosher.iskosher.dto.request.BusinessFilterCriteria;
 import com.kosher.iskosher.dto.request.BusinessUpdateRequest;
@@ -17,6 +14,7 @@ import com.kosher.iskosher.types.LocationDetails;
 import com.kosher.iskosher.types.TravelInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -30,7 +28,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-import static com.kosher.iskosher.common.constant.AppConstants.*;
+import static com.kosher.iskosher.common.constant.AppConstants.EARTH_RADIUS_KM;
 import static com.kosher.iskosher.common.utils.ManyToManyUpdateUtil.updateManyToManyRelationship;
 
 @Slf4j
@@ -61,91 +59,15 @@ public class BusinessServiceImpl implements BusinessService {
     private final TravelTimeService travelTimeService;
     //endregion
 
-    //region Caching Configurations
-    private final LoadingCache<String, KosherType> kosherTypeCache = CacheBuilder.newBuilder()
-            .maximumSize(MAXIMUM_SIZE_CACHE)
-            .expireAfterWrite(DURATION_CACHE_EXPIRE, TIME_UNIT_CACHE_EXPIRE)
-            .build(new CacheLoader<>() {
-                @Override
-                public KosherType load(String name) {
-                    return kosherTypeService.getOrCreateEntity(name);
-                }
-            });
-
-    private final LoadingCache<String, BusinessType> businessTypeCache = CacheBuilder.newBuilder()
-            .maximumSize(MAXIMUM_SIZE_CACHE)
-            .expireAfterWrite(DURATION_CACHE_EXPIRE, TIME_UNIT_CACHE_EXPIRE)
-            .build(new CacheLoader<>() {
-                @Override
-                public BusinessType load(String name) {
-                    return businessTypeService.getOrCreateEntity(name);
-                }
-            });
-
-    private final LoadingCache<String, City> cityCache = CacheBuilder.newBuilder()
-            .maximumSize(MAXIMUM_SIZE_CACHE)
-            .expireAfterWrite(DURATION_CACHE_EXPIRE, TIME_UNIT_CACHE_EXPIRE)
-            .build(new CacheLoader<>() {
-                @Override
-                public City load(String key) {
-                    String[] parts = key.split("::");
-                    String cityName = parts[0];
-                    String regionName = parts[1];
-                    return cityService.createOrGetCity(cityName, regionName);
-                }
-            });
-
-    private final LoadingCache<String, Address> addressCache = CacheBuilder.newBuilder()
-            .maximumSize(MAXIMUM_SIZE_CACHE)
-            .expireAfterWrite(DURATION_CACHE_EXPIRE, TIME_UNIT_CACHE_EXPIRE)
-            .build(new CacheLoader<>() {
-                @Override
-                public Address load(String name) {
-                    return addressService.getOrCreateEntity(name);
-                }
-            });
-
-    private final LoadingCache<String, FoodType> foodTypeCache = CacheBuilder.newBuilder()
-            .maximumSize(MAXIMUM_SIZE_CACHE)
-            .expireAfterWrite(DURATION_CACHE_EXPIRE, TIME_UNIT_CACHE_EXPIRE)
-            .build(new CacheLoader<>() {
-                @Override
-                public FoodType load(String name) {
-                    return foodTypeService.getOrCreateEntity(name);
-                }
-            });
-
-    private final LoadingCache<String, FoodItemType> foodItemTypeCache = CacheBuilder.newBuilder()
-            .maximumSize(MAXIMUM_SIZE_CACHE)
-            .expireAfterWrite(DURATION_CACHE_EXPIRE, TIME_UNIT_CACHE_EXPIRE)
-            .build(new CacheLoader<>() {
-                @Override
-                public FoodItemType load(String name) {
-                    return foodItemTypeService.getOrCreateEntity(name);
-                }
-            });
-    //endregion
-
     @Override
     @Transactional
     public BusinessResponse createBusiness(UUID userId, BusinessCreateRequest dto) {
         try {
             kosherCertificateService.existsByCertificate(dto.kosherCertificate().certificate());
 
-            //region Asynchronous Entity Preparation
-            CompletableFuture<City> cityFuture = CompletableFuture.supplyAsync(() ->
-                    cityCache.getUnchecked(dto.location().city() + "::" + dto.location().region())
-            );
-            CompletableFuture<Address> addressFuture =
-                    CompletableFuture.supplyAsync(() -> addressCache.getUnchecked(dto.location().address()));
-            CompletableFuture<BusinessType> businessTypeFuture =
-                    CompletableFuture.supplyAsync(() -> businessTypeCache.getUnchecked(dto.businessTypeName()));
-            //endregion
-
-            //region Entity Creation
-            City city = cityFuture.get();
-            Address address = addressFuture.get();
-            BusinessType businessType = businessTypeFuture.get();
+            Address address = addressService.getOrCreateEntity(dto.location().address());
+            City city = cityService.createOrGetCity(dto.location().city(), dto.location().region());
+            BusinessType businessType = businessTypeService.getOrCreateEntity(dto.businessTypeName());
 
             List<BusinessPhoto> photos = photoService.createBusinessPhotos(dto.businessPhotos(),
                     dto.foodItemTypes().get(new Random().nextInt(dto.foodItemTypes().size())));
@@ -200,17 +122,17 @@ public class BusinessServiceImpl implements BusinessService {
                 .collect(Collectors.toList());
 
         List<FoodTypeBusiness> foodTypeRelationships = foodTypes.stream()
-                .map(foodTypeCache::getUnchecked)
+                .map(foodTypeService::getOrCreateEntity)
                 .map(foodType -> new FoodTypeBusiness(business, foodType))
                 .collect(Collectors.toList());
 
         List<FoodItemTypeBusiness> foodItemTypeRelationships = foodItemTypes.stream()
-                .map(foodItemTypeCache::getUnchecked)
+                .map(foodItemTypeService::getOrCreateEntity)
                 .map(foodItemType -> new FoodItemTypeBusiness(business, foodItemType))
                 .collect(Collectors.toList());
         // TODO: 2/6/2025  Add icon url to kosher types (like location...)
         List<KosherTypeBusiness> kosherTypeRelationships = kosherTypes.stream()
-                .map(kosherTypeCache::getUnchecked)
+                .map(kosherTypeService::getOrCreateEntity)
                 .map(kosherType -> new KosherTypeBusiness(business, kosherType))
                 .collect(Collectors.toList());
         //endregion
@@ -306,6 +228,8 @@ public class BusinessServiceImpl implements BusinessService {
     }
 
     @Override
+    @Cacheable(cacheNames = "businessPreviewsCache",
+            key = "'page:' + #pageable.pageNumber + ':size:' + #pageable.pageSize")
     public Page<BusinessPreviewResponse> getBusinessPreviews(Pageable pageable) {
         int limit = pageable.getPageSize();
         int offset = (int) pageable.getOffset();
@@ -324,10 +248,10 @@ public class BusinessServiceImpl implements BusinessService {
                 .orElseThrow(() -> new EntityNotFoundException("Business", "id", id));
     }
 
-    private long countAllBusinesses() {
-        return businessRepository.countByIsActiveTrue();
+    @Cacheable(cacheNames = "businessCountCache", key = "'count'")
+    public long countAllBusinesses() {
+        return businessRepository.count();
     }
-
     @Override
     public void deleteBusiness(UUID id) {
         Business business = businessRepository.findById(id)
