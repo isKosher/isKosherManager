@@ -12,7 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/v1/files")
+@RequestMapping("/api/v1/admin/files")
 @RequiredArgsConstructor
 public class FileUploadController {
     private final GoogleDriveService googleDriveService;
