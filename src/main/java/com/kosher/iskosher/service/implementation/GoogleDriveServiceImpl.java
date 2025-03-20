@@ -78,11 +78,15 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
             );
 
             File uploadedFile = googleDriveClient.files().create(fileMetadata, mediaContent)
-                    .setFields("id, webViewLink")
+                    .setFields("id, webViewLink, mimeType")
                     .execute();
 
             log.info("Successfully uploaded file: {} with ID: {} to folder: {}",
                     fileName, uploadedFile.getId(), folderType);
+
+            if (isImageFile(uploadedFile.getMimeType())) {
+                uploadedFile.setWebViewLink(getDirectImageUrl(uploadedFile.getId()));
+            }
 
             return new FileUploadResponse(uploadedFile.getId(), uploadedFile.getWebViewLink());
 
@@ -107,6 +111,10 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
 
             String parentFolderId = file.getParents().get(0);
             FolderGoogleType folderType = getFolderTypeById(parentFolderId);
+
+            if (isImageFile(file.getMimeType())) {
+                file.setWebViewLink(getDirectImageUrl(file.getId()));
+            }
 
             return new FileType(
                     file.getId(),
@@ -136,6 +144,13 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
             log.error("Failed to delete file with ID: {}", fileId, e);
             throw new FileOperationException("Failed to delete file: " + e.getMessage());
         }
+    }
+
+    public String getDirectImageUrl(String fileId) {
+        if (fileId == null || fileId.isEmpty()) {
+            return null;
+        }
+        return "https://drive.google.com/uc?export=view&id=" + fileId;
     }
 
     private void validateFile(MultipartFile file) {
@@ -193,6 +208,10 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
                 .map(Map.Entry::getKey)
                 .findFirst()
                 .orElse(null);
+    }
+
+    private boolean isImageFile(String mimeType) {
+        return mimeType != null && mimeType.startsWith("image/");
     }
 
 }
