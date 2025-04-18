@@ -6,7 +6,7 @@ import com.kosher.iskosher.dto.KosherSupervisorDto;
 import com.kosher.iskosher.dto.KosherTypeDto;
 import com.kosher.iskosher.dto.response.UserOwnedBusinessResponse;
 import com.kosher.iskosher.entity.Business;
-import com.kosher.iskosher.types.LocationInfo;
+import com.kosher.iskosher.types.LocationDetails;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -24,7 +24,7 @@ public class BusinessMapper {
                 .businessNumber(business.getBusinessNumber())
                 .kosherTypes(getKosherTypeDto(business))
                 .businessType(business.getBusinessType().getName())
-                .location(getLocationInfo(business))
+                .location(getLocationDetails(business))
                 .supervisors(getSupervisorsDto(business))
                 .certificates(getCertificateDto(business))
                 .foodTypes(business.getFoodTypeVsBusinesses().stream()
@@ -46,11 +46,14 @@ public class BusinessMapper {
                 .collect(Collectors.toList());
     }
 
-    private LocationInfo getLocationInfo(Business business) {
-        return new LocationInfo(
+    private LocationDetails getLocationDetails(Business business) {
+        return new LocationDetails(
                 business.getLocation().getAddress().getName(),
                 business.getLocation().getStreetNumber(),
-                business.getLocation().getCity().getName());
+                business.getLocation().getCity().getName(),
+                business.getLocation().getDetails(),
+                business.getLocation().getLatitude(),
+                business.getLocation().getLatitude());
     }
 
     private List<KosherSupervisorDto> getSupervisorsDto(Business business) {

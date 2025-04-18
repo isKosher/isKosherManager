@@ -4,7 +4,7 @@ import com.kosher.iskosher.dto.BusinessPhotoDto;
 import com.kosher.iskosher.dto.KosherCertificateDto;
 import com.kosher.iskosher.dto.KosherSupervisorDto;
 import com.kosher.iskosher.dto.KosherTypeDto;
-import com.kosher.iskosher.types.LocationInfo;
+import com.kosher.iskosher.types.LocationDetails;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -25,10 +25,11 @@ public class UserOwnedBusinessResponse {
     private String businessNumber;
     private List<KosherTypeDto> kosherTypes;
     private String businessType;
-    private LocationInfo location;
+    private LocationDetails location;
     private List<KosherSupervisorDto> supervisors;
     private List<KosherCertificateDto> certificates;
     private List<String> foodTypes;
     private List<String> foodItemTypes;
     private List<BusinessPhotoDto> businessPhotos;
 }
+
