@@ -14,7 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/api/v1/admin/files")
 @RequiredArgsConstructor
-public class FileUploadController {
+public class FileUploadAdminController {
     private final GoogleDriveService googleDriveService;
 
 

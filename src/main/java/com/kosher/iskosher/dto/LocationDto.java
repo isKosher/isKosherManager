@@ -5,10 +5,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import java.io.Serializable;
-import java.util.UUID;
 
 public record LocationDto(
-        UUID id,
         @NotNull(message = "Street number is required") Integer streetNumber,
         @NotBlank(message = "Address name is required")
         @Size(max = 255, message = "Address name must be at most 255 characters") String address,
