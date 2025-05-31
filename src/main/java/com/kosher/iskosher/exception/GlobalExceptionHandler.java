@@ -232,7 +232,7 @@ public class GlobalExceptionHandler {
         log.error("File operation error: {}", ex.getMessage());
 
         ErrorResponse error = ErrorResponse.builder()
-                .message("An error occurred while processing the file")  // הודעה כללית למשתמש
+                .message(ex.getMessage())
                 .error("File Operation Failed")
                 .path(request.getRequestURI())
                 .timestamp(Instant.now())

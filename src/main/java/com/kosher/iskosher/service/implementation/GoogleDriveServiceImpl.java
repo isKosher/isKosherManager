@@ -3,66 +3,55 @@ package com.kosher.iskosher.service.implementation;
 import com.google.api.client.http.InputStreamContent;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
-import com.kosher.iskosher.common.enums.FolderGoogleType;
+import com.kosher.iskosher.common.enums.FolderType;
+import com.kosher.iskosher.common.utils.FileValidatorUtil;
 import com.kosher.iskosher.dto.response.FileUploadResponse;
 import com.kosher.iskosher.exception.FileOperationException;
-import com.kosher.iskosher.exception.InvalidFileException;
-import com.kosher.iskosher.service.GoogleDriveService;
+import com.kosher.iskosher.service.FileStorageService;
 import com.kosher.iskosher.types.FileType;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.Map;
+import java.util.UUID;
 
 @Slf4j
-@Service
+@Service("googleDriveService")
 @RequiredArgsConstructor
-public class GoogleDriveServiceImpl implements GoogleDriveService {
+@ConditionalOnProperty(name = "storage.google-drive.enabled", havingValue = "true")
+public class GoogleDriveServiceImpl implements FileStorageService {
     private final Drive googleDriveClient;
+    private final FileValidatorUtil fileValidator;
 
-    @Value("${google.drive.folders.certificates-id}")
+    @Value("${storage.google-drive.folders.certificates-id}")
     private String certificatesFolderId;
 
-    @Value("${google.drive.folders.supervisors-id}")
+    @Value("${storage.google-drive.folders.supervisors-id}")
     private String supervisorsFolderId;
-
-    @Value("${google.drive.allowed-extensions:pdf,jpg,jpeg,png}")
-    private String allowedExtensions;
-
-    @Value("${google.drive.max-file-size:10485760}")
-    private long maxFileSize;
-
-    private Set<String> allowedExtensionsSet;
-    private Map<FolderGoogleType, String> folderIds;
-
+    private Map<FolderType, String> folderIds;
 
     @PostConstruct
     public void init() {
-        allowedExtensionsSet = new HashSet<>(Arrays.asList(allowedExtensions.split(",")));
+        folderIds = new EnumMap<>(FolderType.class);
+        folderIds.put(FolderType.CERTIFICATES, certificatesFolderId);
+        folderIds.put(FolderType.SUPERVISORS, supervisorsFolderId);
 
-        folderIds = new EnumMap<>(FolderGoogleType.class);
-        folderIds.put(FolderGoogleType.CERTIFICATES, certificatesFolderId);
-        folderIds.put(FolderGoogleType.SUPERVISORS, supervisorsFolderId);
-
-        log.info("Initialized GoogleDriveService with allowed extensions: {}", allowedExtensionsSet);
+        log.info("Initialized GoogleDriveService");
         validateFolderIds();
     }
 
-    /**
-     * Uploads a file to a specific Google Drive folder
-     *
-     * @param file       The file to upload
-     * @param folderType The type of folder (Certificates or Supervisors)
-     * @return A response containing the file ID and its link
-     */
-    public FileUploadResponse uploadFile(MultipartFile file, FolderGoogleType folderType) {
-        validateFile(file);
+    @Override
+    public FileUploadResponse uploadFile(MultipartFile file, FolderType folderType) {
+        fileValidator.validateFile(file);
         String folderId = getFolderIdByType(folderType);
 
         try {
@@ -78,43 +67,43 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
             );
 
             File uploadedFile = googleDriveClient.files().create(fileMetadata, mediaContent)
-                    .setFields("id, webViewLink, mimeType")
+                    .setFields("id, webViewLink, mimeType, size")
                     .execute();
 
             log.info("Successfully uploaded file: {} with ID: {} to folder: {}",
                     fileName, uploadedFile.getId(), folderType);
 
-            if (isImageFile(uploadedFile.getMimeType())) {
-                uploadedFile.setWebViewLink(getDirectImageUrl(uploadedFile.getId()));
-            }
+            String url = isImageFile(uploadedFile.getMimeType())
+                    ? getDirectImageUrl(uploadedFile.getId())
+                    : uploadedFile.getWebViewLink();
 
-            return new FileUploadResponse(uploadedFile.getId(), uploadedFile.getWebViewLink());
+            return new FileUploadResponse(
+                    uploadedFile.getId(),
+                    url,
+                    fileName,
+                    uploadedFile.getMimeType(),
+                    uploadedFile.getSize()
+            );
 
         } catch (IOException e) {
             log.error("Failed to upload file: {} to folder: {}", file.getOriginalFilename(), folderType, e);
-            throw new FileOperationException("Failed to upload file: " + e.getMessage());
+            throw new FileOperationException("Failed to upload file to Google Drive: " + e.getMessage());
         }
     }
 
-    /**
-     * Retrieves metadata for a file from Google Drive.
-     *
-     * @param fileId The unique ID of the file.
-     * @return A {@link FileType} containing the file's details.
-     * @throws FileOperationException If retrieval fails.
-     */
+    @Override
     public FileType getFile(String fileId) {
         try {
             File file = googleDriveClient.files().get(fileId)
-                    .setFields("id, name, webViewLink, mimeType, parents")
+                    .setFields("id, name, webViewLink, mimeType, parents, size")
                     .execute();
 
             String parentFolderId = file.getParents().get(0);
-            FolderGoogleType folderType = getFolderTypeById(parentFolderId);
+            FolderType folderType = getFolderTypeById(parentFolderId);
 
-            if (isImageFile(file.getMimeType())) {
-                file.setWebViewLink(getDirectImageUrl(file.getId()));
-            }
+            String url = isImageFile(file.getMimeType())
+                    ? getDirectImageUrl(file.getId())
+                    : file.getWebViewLink();
 
             return new FileType(
                     file.getId(),
@@ -126,51 +115,35 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
 
         } catch (IOException e) {
             log.error("Failed to get file with ID: {}", fileId, e);
-            throw new FileOperationException("Failed to get file: " + e.getMessage());
+            throw new FileOperationException("Failed to get file from Google Drive: " + e.getMessage());
         }
     }
 
-    /**
-     * Permanently deletes a file from Google Drive.
-     *
-     * @param fileId The unique ID of the file to delete.
-     * @throws FileOperationException If the deletion fails.
-     */
-    public void deleteFile(String fileId) {
+    @Override
+    public void deleteFile(FolderType folderType, String fileId) {
         try {
             googleDriveClient.files().delete(fileId).execute();
-            log.info("Successfully deleted file with ID: {}", fileId);
+            log.info("Successfully deleted file with ID: {} from folder: {}", fileId, folderType);
         } catch (IOException e) {
-            log.error("Failed to delete file with ID: {}", fileId, e);
-            throw new FileOperationException("Failed to delete file: " + e.getMessage());
+            log.error("Failed to delete file with ID: {} from folder: {}", fileId, folderType, e);
+            throw new FileOperationException("Failed to delete file from Google Drive: " + e.getMessage());
         }
     }
 
-    public String getDirectImageUrl(String fileId) {
-        if (fileId == null || fileId.isEmpty()) {
-            return null;
+    @Override
+    public boolean isAvailable() {
+        try {
+            // Simple health check
+            googleDriveClient.about().get().setFields("user").execute();
+            return true;
+        } catch (Exception e) {
+            log.warn("Google Drive service is not available: {}", e.getMessage());
+            return false;
         }
+    }
+
+    private String getDirectImageUrl(String fileId) {
         return "https://drive.google.com/uc?export=view&id=" + fileId;
-    }
-
-    private void validateFile(MultipartFile file) {
-        if (file.isEmpty()) {
-            throw new InvalidFileException("File is empty");
-        }
-
-        if (file.getSize() > maxFileSize) {
-            throw new InvalidFileException(
-                    String.format("File size exceeds maximum limit of %d bytes", maxFileSize)
-            );
-        }
-
-        String extension = StringUtils.getFilenameExtension(file.getOriginalFilename());
-        if (extension == null || !allowedExtensionsSet.contains(extension.toLowerCase())) {
-            throw new InvalidFileException(String.format("File type %s is not allowed. Allowed types: %s"
-                    , extension
-                    , allowedExtensionsSet)
-            );
-        }
     }
 
     private String generateUniqueFileName(String originalFilename) {
@@ -184,17 +157,16 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
     }
 
     private void validateFolderIds() {
-        for (Map.Entry<FolderGoogleType, String> entry : folderIds.entrySet()) {
+        for (Map.Entry<FolderType, String> entry : folderIds.entrySet()) {
             if (entry.getValue() == null || entry.getValue().isEmpty()) {
                 throw new FileOperationException(
-                        "Folder ID not configured for " + entry.getKey()
+                        "Google Drive folder ID not configured for " + entry.getKey()
                 );
             }
         }
-
     }
 
-    private String getFolderIdByType(FolderGoogleType folderType) {
+    private String getFolderIdByType(FolderType folderType) {
         String folderId = folderIds.get(folderType);
         if (folderId == null || folderId.isEmpty()) {
             throw new FileOperationException("Folder ID not configured for type: " + folderType);
@@ -202,7 +174,7 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
         return folderId;
     }
 
-    private FolderGoogleType getFolderTypeById(String folderId) {
+    private FolderType getFolderTypeById(String folderId) {
         return folderIds.entrySet().stream()
                 .filter(entry -> entry.getValue().equals(folderId))
                 .map(Map.Entry::getKey)
@@ -213,5 +185,4 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
     private boolean isImageFile(String mimeType) {
         return mimeType != null && mimeType.startsWith("image/");
     }
-
 }
