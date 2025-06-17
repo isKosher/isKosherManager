@@ -69,7 +69,7 @@ public class BusinessServiceImpl implements BusinessService {
             City city = cityService.createOrGetCity(dto.location().city(), dto.location().region());
             BusinessType businessType = businessTypeService.getOrCreateEntity(dto.businessTypeName());
 
-            List<BusinessPhoto> photos = photoService.createBusinessPhotos(dto.businessPhotos(),
+            List<BusinessPhoto> photos = photoService.getRandomPhotosByBusinessType(dto.businessPhotos(),
                     dto.foodItemTypes().get(new Random().nextInt(dto.foodItemTypes().size())));
             Location location = locationService.createLocation(dto.location(), city, address);
             KosherSupervisor supervisor = kosherSupervisorService.createSupervisorOnly(dto.supervisor());
@@ -176,6 +176,7 @@ public class BusinessServiceImpl implements BusinessService {
         }
 
         if (dto.businessName() != null) business.setName(dto.businessName());
+        // TODO: 5/28/2025 change to business phone... 
         if (dto.businessPhone() != null) business.setBusinessNumber(dto.businessPhone());
         if (dto.businessDetails() != null) business.setDetails(dto.businessDetails());
         if (dto.businessRating() != null) business.setRating(dto.businessRating());

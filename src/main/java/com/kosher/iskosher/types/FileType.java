@@ -1,6 +1,6 @@
 package com.kosher.iskosher.types;
 
-import com.kosher.iskosher.common.enums.FolderGoogleType;
+import com.kosher.iskosher.common.enums.FolderType;
 
 import java.io.Serializable;
 
@@ -10,6 +10,6 @@ public record FileType(
         String name,
         String webViewLink,
         String mimeType,
-        FolderGoogleType folderType
+        FolderType folderType
 ) implements Serializable {
 }

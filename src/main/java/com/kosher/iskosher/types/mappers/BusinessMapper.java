@@ -40,7 +40,7 @@ public class BusinessMapper {
     private List<BusinessPhotoDto> getBusinessPhotosDto(Business business) {
         return business.getBusinessPhotosVsBusinesses().stream()
                 .map(pb -> new BusinessPhotoDto(
-                        pb.getId(),
+                        pb.getBusinessPhotos().getId(),
                         pb.getBusinessPhotos().getUrl(),
                         pb.getBusinessPhotos().getPhotoInfo()))
                 .collect(Collectors.toList());
