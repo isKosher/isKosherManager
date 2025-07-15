@@ -86,17 +86,19 @@ public class CacheConfig {
         log.debug("Creating cache: {}, TTL: {}, Size: {}",
                 definition.name(), definition.ttl(), definition.size());
 
-        cacheManager.createCache(definition.name(),
-                Eh107Configuration.fromEhcacheCacheConfiguration(
-                        CacheConfigurationBuilder
-                                .newCacheConfigurationBuilder(
-                                        definition.keyType(),
-                                        definition.valueType(),
-                                        ResourcePoolsBuilder.heap(definition.size())
-                                )
-                                .withExpiry(ExpiryPolicyBuilder.timeToLiveExpiration(definition.ttl()))
-                                .build()
-                )
-        );
+        if (cacheManager.getCache(definition.name()) == null) {
+            cacheManager.createCache(definition.name(),
+                    Eh107Configuration.fromEhcacheCacheConfiguration(
+                            CacheConfigurationBuilder
+                                    .newCacheConfigurationBuilder(
+                                            definition.keyType(),
+                                            definition.valueType(),
+                                            ResourcePoolsBuilder.heap(definition.size())
+                                    )
+                                    .withExpiry(ExpiryPolicyBuilder.timeToLiveExpiration(definition.ttl()))
+                                    .build()
+                    )
+            );
+        }
     }
 }

@@ -8,7 +8,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataAccessException;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public abstract class AbstractLookupService<T extends NamedEntity, D extends NamedEntityDto>
@@ -48,7 +50,7 @@ public abstract class AbstractLookupService<T extends NamedEntity, D extends Nam
         }
     }
 
-    @Cacheable(value = "lookupCache", key = "#name")
+    @Cacheable(value = "lookupCache", keyGenerator = "lookupKeyGenerator")
     public T getOrCreateEntity(String name) {
         try {
             return repository.findByNameIgnoreCase(name)
